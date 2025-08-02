@@ -3,56 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Underground Studio - Console Matrix TV Vintage Pro</title>
+    <title>Underground Studio - Générateur & Archive</title>
     <style>
-        body { background-color: black; color: lime; font-family: 'Courier New', monospace; padding: 20px; }
-        .tv-frame { border: 10px solid #333; border-radius: 20px; box-shadow: 0 0 20px rgba(0,255,0,0.5); background: #111; padding: 20px; width: 90%; margin: auto; position: relative; }
-        .tv-screen { background-color: #000; border: 1px solid lime; padding: 10px; height: 400px; overflow-y: scroll; font-size: 12px; box-shadow: inset 0 0 10px lime; animation: scanline 6s linear infinite, flicker 0.5s infinite; }
+        body { background: linear-gradient(135deg, #0a0a0a, #1e1e1e); color: #00ff00; font-family: 'Roboto', sans-serif; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .tv-frame { border: 12px solid #333; border-radius: 15px; box-shadow: 0 0 25px rgba(0,255,0,0.6); background: #1a1a1a; padding: 20px; position: relative; }
+        .tv-screen { background: #000; border: 2px solid #00ff00; padding: 15px; height: 450px; overflow-y: scroll; font-size: 14px; box-shadow: inset 0 0 15px #00ff00; animation: scanline 5s linear infinite, flicker 0.4s infinite; }
         @keyframes scanline { 0% { background-position: 0 0; } 100% { background-position: 0 100%; } }
-        @keyframes flicker { 0% { opacity: 0.9; } 50% { opacity: 1; } 100% { opacity: 0.9; } }
-        .tv-screen::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.5)); pointer-events: none; }
-        button { background-color: #222; color: lime; border: 1px solid lime; padding: 10px; cursor: pointer; box-shadow: 0 0 5px lime; }
-        input { background-color: #111; color: lime; border: 1px solid lime; padding: 5px; width: 100%; }
-        audio { margin: 5px 0; width: 100%; }
-        a { color: lime; text-decoration: none; }
-        .section { margin-top: 20px; }
-        .archive-item { margin-bottom: 10px; border-bottom: 1px solid lime; padding-bottom: 5px; }
+        @keyframes flicker { 0%, 100% { opacity: 0.95; } 50% { opacity: 1; } }
+        .tv-screen::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.7)); pointer-events: none; }
+        .controls { margin: 20px 0; }
+        input { background: #222; color: #00ff00; border: 1px solid #00ff00; padding: 10px; width: 70%; border-radius: 5px; }
+        button { background: #006400; color: #fff; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; margin-left: 10px; }
+        button:hover { background: #004d00; }
+        .player { margin: 20px 0; text-align: center; }
+        audio { width: 100%; max-width: 400px; }
+        a { color: #00ff00; text-decoration: none; margin-left: 10px; }
+        .archive { margin-top: 20px; }
+        .archive-item { background: #2a2a2a; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="tv-frame">
-        <div class="tv-screen" id="console"></div>
-    </div>
+    <div class="container">
+        <div class="tv-frame">
+            <div class="tv-screen" id="console"></div>
+        </div>
 
-    <div class="section">
-        <h2>Générateur Pro</h2>
-        <input type="text" id="prompt" value="reggae dub King tubby dela tape invasion" placeholder="Prompt (ex. reggae dub)">
-        <button onclick="generateMusic()">Générer 2 Musiques</button>
-        <div id="genResult"></div>
-        <audio controls id="audio1"></audio>
-        <a id="download1" href="" download>Download Musique 1</a>
-        <audio controls id="audio2"></audio>
-        <a id="download2" href="" download>Download Musique 2</a>
-    </div>
+        <div class="controls">
+            <h2>Générateur de Musique</h2>
+            <input type="text" id="prompt" placeholder="Ex: reggae dub King tubby">
+            <button onclick="generateMusic()">Générer Test</button>
+        </div>
 
-    <div class="section">
-        <h2>Récupérer & Archiver de Base44</h2>
-        <input type="text" id="trackId" value="44" placeholder="Track ID (ex. 44)">
-        <button onclick="retrieveAndArchive()">Récupérer & Archiver</button>
-    </div>
+        <div class="player">
+            <audio controls id="audio"></audio>
+            <a id="download" href="" download>Download</a>
+        </div>
 
-    <div class="section">
-        <h2>Archive Pro</h2>
-        <div id="archive"></div>
+        <div class="controls">
+            <h2>Récupérer de Base44</h2>
+            <input type="text" id="trackId" placeholder="Track ID (ex: 44)">
+            <button onclick="retrieveMusic()">Récupérer</button>
+        </div>
+
+        <div class="archive" id="archive"></div>
     </div>
 
     <script>
-        const API_URL = "https://undergroundstudioapp.netlify.app/generateAudio"; // Backend Netlify
-        const BASE44_API_URL = "https://base44.app/api/apps/" + process.env.BASE44_APP_ID + "/entities/Track/"; // Backend Base44
-        const BASE44_APP_ID = process.env.BASE44_APP_ID;
-        const BASE44_API_KEY = process.env.BASE44_API_KEY;
+        const API_URL = "https://undergroundstudioapp.netlify.app/generateAudio";
+        const BASE44_API_URL = "https://base44.app/api/apps/" + process.env.BASE44_APP_ID + "/entities/Track/";
+        const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Fallback, révoque après
         const consoleEl = document.getElementById('console');
-        let archive = localStorage.getItem('archive') ? JSON.parse(localStorage.getItem('archive')) : [];
+        let archive = JSON.parse(localStorage.getItem('archive') || '[]');
 
         function log(message) {
             consoleEl.innerHTML += `<p>${new Date().toLocaleTimeString()} - ${message}</p>`;
@@ -61,63 +63,49 @@
 
         async function generateMusic() {
             const prompt = document.getElementById('prompt').value;
-            log("INIT: Vérification params... Prompt: " + prompt + ". Attente: Requête API Suno.");
-            if (!prompt) { log("ERREUR: Prompt vide. Étape annulée."); return; }
-            log("REQUETE: POST à " + API_URL + " pour musique 1.");
+            log("Démarrage: Vérification du prompt...");
+            if (!prompt) { log("Erreur: Prompt vide."); return; }
+            log("Requête: Envoi à " + API_URL);
             try {
-                const response1 = await fetch(API_URL, {
+                const response = await fetch(API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
-                    body: JSON.stringify({ prompt, trackId: "44", customMode: false, instrumental: true, model: "V3_5" })
+                    body: JSON.stringify({ prompt, trackId: Date.now().toString().slice(-6), customMode: false, instrumental: true, model: "V3_5" })
                 });
-                log("REPONSE: Statut " + response1.status + ". Attente: Parsing JSON.");
-                if (!response1.ok) { log("ERREUR: Statut " + response1.status + ". Étape échouée."); throw new Error(`Erreur 1: ${response1.status}`); }
-                const data1 = await response1.json();
-                log("SUCCES: taskId = " + data1.taskId + ". Audio URL: " + (data1.audio_url || "Non disponible") + ". Étape: Mise à jour player 1.");
-                document.getElementById('audio1').src = data1.audio_url || "";
-                document.getElementById('download1').href = data1.audio_url || "";
-                archive.push({ id: "44", url: data1.audio_url || "", prompt });
-                log("ARCHIVE: Ajouté musique 1. Attente: Requête musique 2.");
-
-                log("REQUETE: POST à " + API_URL + " pour musique 2 variation.");
-                const response2 = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
-                    body: JSON.stringify({ prompt: prompt + " variation", trackId: "009", customMode: false, instrumental: true, model: "V3_5" })
-                });
-                log("REPONSE: Statut " + response2.status + ". Attente: Parsing JSON.");
-                if (!response2.ok) { log("ERREUR: Statut " + response2.status + ". Étape échouée."); throw new Error(`Erreur 2: ${response2.status}`); }
-                const data2 = await response2.json();
-                log("SUCCES: taskId = " + data2.taskId + ". Audio URL: " + (data2.audio_url || "Non disponible") + ". Étape: Mise à jour player 2.");
-                document.getElementById('audio2').src = data2.audio_url || "";
-                document.getElementById('download2').href = data2.audio_url || "";
-                archive.push({ id: "009", url: data2.audio_url || "", prompt: prompt + " variation" });
-                log("ARCHIVE: Ajouté musique 2. Génération terminée.");
-
+                log("Réponse: Statut " + response.status);
+                if (!response.ok) throw new Error("Échec: " + response.status);
+                const data = await response.json();
+                log("Succès: TaskID " + data.taskId + ", URL: " + (data.audio_url || "N/A"));
+                document.getElementById('audio').src = data.audio_url || "";
+                document.getElementById('download').href = data.audio_url || "";
+                archive.push({ id: data.taskId, url: data.audio_url || "", prompt });
+                localStorage.setItem('archive', JSON.stringify(archive));
                 updateArchive();
+                log("Terminé: Musique générée et archivée.");
             } catch (error) {
-                log("ERREUR GLOBALE: " + error.message + ". Requête échouée.");
+                log("Erreur: " + error.message);
             }
         }
 
-        async function retrieveAndArchive() {
+        async function retrieveMusic() {
             const trackId = document.getElementById('trackId').value;
-            log("INIT: Vérification params... Track ID: " + trackId + ". Attente: Requête Base44.");
-            if (!trackId) { log("ERREUR: Track ID vide. Étape annulée."); return; }
-            log("REQUETE: GET à " + BASE44_API_URL + trackId + " pour récupération.");
+            log("Démarrage: Vérification Track ID...");
+            if (!trackId) { log("Erreur: Track ID vide."); return; }
+            log("Requête: Récupération de " + BASE44_API_URL + trackId);
             try {
-                const response = await fetch(BASE44_API_URL + trackId, {
-                    headers: { "Authorization": `Bearer ${BASE44_API_KEY}` }
-                });
-                log("REPONSE: Statut " + response.status + ". Attente: Parsing JSON.");
-                if (!response.ok) { log("ERREUR: Statut " + response.status + ". Étape échouée."); throw new Error(`Erreur récupération: ${response.status}`); }
+                const response = await fetch(BASE44_API_URL + trackId, { headers: { "Authorization": `Bearer ${BASE44_API_KEY}` } });
+                log("Réponse: Statut " + response.status);
+                if (!response.ok) throw new Error("Échec: " + response.status);
                 const data = await response.json();
-                log("SUCCES: Audio URL = " + (data.audio_url || "Non disponible") + ". Étape: Mise à jour archive.");
-                archive.push({ id: trackId, url: data.audio_url || "", prompt: data.prompt || "" });
-                log("ARCHIVE: Ajouté track " + trackId + ". Récupération terminée.");
+                log("Succès: URL " + (data.audio_url || "N/A"));
+                document.getElementById('audio').src = data.audio_url || "";
+                document.getElementById('download').href = data.audio_url || "";
+                archive.push({ id: trackId, url: data.audio_url || "", prompt: data.prompt || "N/A" });
+                localStorage.setItem('archive', JSON.stringify(archive));
                 updateArchive();
+                log("Terminé: Track récupéré et archivé.");
             } catch (error) {
-                log("ERREUR GLOBALE: " + error.message + ". Requête échouée.");
+                log("Erreur: " + error.message);
             }
         }
 
@@ -129,11 +117,25 @@
                     <a href="${item.url}" download="track_${item.id}.mp3">Download</a>
                 </div>
             `).join('');
-            localStorage.setItem('archive', JSON.stringify(archive));
-            log("ARCHIVE: Mise à jour effectuée.");
         }
-        updateArchive(); // Charge archive initiale
-        log("CONSOLE: Système prêt. Aucune erreur au démarrage. Attente action utilisateur.");
+        updateArchive();
+        log("Système prêt: Attente d'action.");
     </script>
+</head>
+<body>
 </body>
 </html>
+
+### Où Mettre
+- **Racine GitHub** : Sauvegarde comme `suno-like.html` dans `UndergroundStudio/` via GitHub éditeur.
+- **Netlify Env Vars** : Dashboard > Settings > Environment Variables :
+  - `BASE44_APP_ID=688deddde15fa30e9518db74`
+  - `BASE44_API_KEY=a71b9a537cc3a41a9f3623ffd3c624e2`
+- **Déploiement** : Pousse sur GitHub, attends redéploiement.
+
+### Test
+- Ouvre `https://undergroundstudioapp.netlify.app/suno-like.html`.
+- Entre prompt, clique "Générer Test", récupère via Track ID, joue/download.
+- Console loggue étapes, erreurs.
+
+Révoque clé après. Dis résultat. (01:13 AM CEST, 03/08/2025)
