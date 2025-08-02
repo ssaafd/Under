@@ -1,73 +1,76 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Underground Studio Netlify Test</title>
-    <style>
-        body { background-color: black; color: lime; font-family: monospace; padding: 20px; }
-        .matrix-monitor { background-color: #000; border: 1px solid lime; padding: 10px; height: 200px; overflow-y: scroll; font-size: 12px; }
-        button { background-color: #222; color: lime; border: 1px solid lime; padding: 10px; cursor: pointer; }
-        audio { margin-top: 10px; }
-        a { color: lime; }
-    </style>
-</head>
-<body>
-    <h1>Underground Studio Test Netlify</h1>
-    <div class="matrix-monitor" id="monitor"></div>
-    <button onclick="generateMusic()">Générer 2 Musiques (Reggae Dub)</button>
-    <div id="player1">
-        <audio controls id="audio1"></audio>
-        <a id="download1" href="" download>Download Musique 1</a>
-    </div>
-    <div id="player2">
-        <audio controls id="audio2"></audio>
-        <a id="download2" href="" download>Download Musique 2</a>
-    </div>
+<h2>Générateur Autonome</h2>
+<input type="text" id="prompt" value="reggae dub King tubby dela tape invasion" placeholder="Prompt">
+<button onclick="generateMusic()">Générer Musique Test</button>
+<div id="genResult"></div>
+<audio controls id="audioGen"></audio>
+<a id="downloadGen" href="" download>Download & Archive</a>
 
-    <script>
-        const NETLIFY_API_URL = "https://undergroundstudioapp.netlify.app/generateAudio";
-        const BASE44_APP_ID = process.env.BASE44_APP_ID;
-        const BASE44_API_KEY = process.env.BASE44_API_KEY;
+<h2>Récupérer & Archiver de Base44</h2>
+<input type="text" id="trackId" value="44" placeholder="Track ID">
+<button onclick="retrieveAndArchive()">Récupérer & Archiver</button>
 
-        const monitor = document.getElementById('monitor');
-        function log(message) {
-            monitor.innerHTML += `<p>${new Date().toLocaleTimeString()} - ${message}</p>`;
-            monitor.scrollTop = monitor.scrollHeight;
+<h2>Archive</h2>
+<div class="archive" id="archive"></div>
+
+<script>
+    const API_URL = "https://undergroundstudioapp.netlify.app/generateAudio"; // Ton domaine Netlify
+    const BASE44_API_URL = "https://base44.app/api/apps/688deddde15fa30e9518db74/entities/Track/"; // Ton BASE44_APP_ID
+    const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Env var ou clé test (révoque après)
+    const consoleEl = document.getElementById('console');
+    let archive = localStorage.getItem('archive') ? JSON.parse(localStorage.getItem('archive')) : [];
+
+    function log(message) {
+        consoleEl.innerHTML += `<p>${new Date().toLocaleTimeString()} - ${message}</p>`;
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    async function generateMusic() {
+        const prompt = document.getElementById('prompt').value;
+        log("Début génération...");
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
+                body: JSON.stringify({ prompt, trackId: Date.now().toString(), customMode: false, instrumental: true, model: "V3_5" })
+            });
+            if (!response.ok) throw new Error(`Erreur: ${response.status}`);
+            const data = await response.json();
+            log("Succès: taskId = " + data.taskId);
+            document.getElementById('audioGen').src = data.audio_url || "";
+            document.getElementById('downloadGen').href = data.audio_url || "";
+            archive.push({ id: data.taskId, url: data.audio_url || "", prompt });
+            updateArchive();
+        } catch (error) {
+            log("Erreur: " + error.message);
         }
+    }
 
-        async function generateMusic() {
-            log("Début génération...");
-            try {
-                log("Requête 1");
-                const response1 = await fetch(NETLIFY_API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
-                    body: JSON.stringify({ prompt: "reggae dub King tubby dela tape invasion", trackId: "44", customMode: false, instrumental: true, model: "V3_5" })
-                });
-                if (!response1.ok) throw new Error(`Erreur 1: ${response1.status}`);
-                const data1 = await response1.json();
-                log("Succès 1: taskId = " + data1.taskId);
-                document.getElementById('audio1').src = data1.audio_url || "";
-                document.getElementById('download1').href = data1.audio_url || "";
-
-                log("Requête 2");
-                const response2 = await fetch(NETLIFY_API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
-                    body: JSON.stringify({ prompt: "reggae dub King tubby dela tape invasion variation", trackId: "009", customMode: false, instrumental: true, model: "V3_5" })
-                });
-                if (!response2.ok) throw new Error(`Erreur 2: ${response2.status}`);
-                const data2 = await response2.json();
-                log("Succès 2: taskId = " + data2.taskId);
-                document.getElementById('audio2').src = data2.audio_url || "";
-                document.getElementById('download2').href = data2.audio_url || "";
-
-                log("Génération terminée.");
-            } catch (error) {
-                log("Erreur: " + error.message);
-            }
+    async function retrieveAndArchive() {
+        const trackId = document.getElementById('trackId').value;
+        log("Récupération de Base44 pour trackId: " + trackId);
+        try {
+            const response = await fetch(BASE44_API_URL + trackId, {
+                headers: { "Authorization": `Bearer ${BASE44_API_KEY}` }
+            });
+            if (!response.ok) throw new Error(`Erreur récupération: ${response.status}`);
+            const data = await response.json();
+            log("Succès récupération: audio_url = " + data.audio_url);
+            archive.push({ id: trackId, url: data.audio_url || "", prompt: data.prompt || "" });
+            updateArchive();
+        } catch (error) {
+            log("Erreur: " + error.message);
         }
-    </script>
-</body>
-</html>
+    }
+
+    function updateArchive() {
+        const archiveDiv = document.getElementById('archive');
+        archiveDiv.innerHTML = archive.map(item => `
+            <div>Track ${item.id} (${item.prompt})
+                <audio controls src="${item.url}"></audio>
+                <a href="${item.url}" download="track_${item.id}.mp3">Download & Archive</a>
+            </div>
+        `).join('');
+        localStorage.setItem('archive', JSON.stringify(archive));
+    }
+    updateArchive(); // Charge archive initiale
+</script>
