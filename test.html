@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Underground Studio Netlify Test</title>
+    <style>
+        body { background-color: black; color: lime; font-family: monospace; padding: 20px; }
+        .matrix-monitor { background-color: #000; border: 1px solid lime; padding: 10px; height: 200px; overflow-y: scroll; font-size: 12px; }
+        button { background-color: #222; color: lime; border: 1px solid lime; padding: 10px; cursor: pointer; }
+        audio { margin-top: 10px; }
+        a { color: lime; }
+    </style>
+</head>
+<body>
+    <h1>Underground Studio Test Netlify</h1>
+    <div class="matrix-monitor" id="monitor"></div>
+    <button onclick="generateMusic()">Générer 2 Musiques (Reggae Dub)</button>
+    <div id="player1">
+        <audio controls id="audio1"></audio>
+        <a id="download1" href="" download>Download Musique 1</a>
+    </div>
+    <div id="player2">
+        <audio controls id="audio2"></audio>
+        <a id="download2" href="" download>Download Musique 2</a>
+    </div>
+
+    <script>
+        const NETLIFY_API_URL = "https://undergroundstudioapp.netlify.app/api/generateAudio";
+        const BASE44_APP_ID = "688deddde15fa30e9518db74";
+        const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Utilise env var Netlify
+
+        const monitor = document.getElementById('monitor');
+        function log(message) {
+            monitor.innerHTML += `<p>${new Date().toLocaleTimeString()} - ${message}</p>`;
+            monitor.scrollTop = monitor.scrollHeight;
+        }
+
+        async function generateMusic() {
+            log("Début génération...");
+            try {
+                log("Requête 1 pour musique 1");
+                const response1 = await fetch(NETLIFY_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
+                    body: JSON.stringify({ prompt: "reggae dub King tubby dela tape invasion", trackId: "44", customMode: false, instrumental: true, model: "V3_5" })
+                });
+                if (!response1.ok) throw new Error(`Erreur 1: ${response1.status}`);
+                const data1 = await response1.json();
+                log("Succès 1: taskId = " + data1.taskId);
+                document.getElementById('audio1').src = data1.audio_url || "";
+                document.getElementById('download1').href = data1.audio_url || "";
+
+                log("Requête 2 pour musique 2");
+                const response2 = await fetch(NETLIFY_API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
+                    body: JSON.stringify({ prompt: "reggae dub King tubby dela tape invasion variation", trackId: "009", customMode: false, instrumental: true, model: "V3_5" })
+                });
+                if (!response2.ok) throw new Error(`Erreur 2: ${response2.status}`);
+                const data2 = await response2.json();
+                log("Succès 2: taskId = " + data2.taskId);
+                document.getElementById('audio2').src = data2.audio_url || "";
+                document.getElementById('download2').href = data2.audio_url || "";
+
+                log("Génération terminée.");
+            } catch (error) {
+                log("Erreur: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
