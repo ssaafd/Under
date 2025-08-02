@@ -26,9 +26,9 @@
     </div>
 
     <script>
-        const NETLIFY_API_URL = "https://undergroundstudioapp.netlify.app/generateAudio"; // Remplacé "api" par nom
-        const BASE44_APP_ID = "688deddde15fa30e9518db74";
-        const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Env var ou clé test
+        const NETLIFY_API_URL = "https://undergroundstudioapp.netlify.app/generateAudio";
+        const BASE44_APP_ID = process.env.BASE44_APP_ID;
+        const BASE44_API_KEY = process.env.BASE44_API_KEY;
 
         const monitor = document.getElementById('monitor');
         function log(message) {
@@ -39,7 +39,7 @@
         async function generateMusic() {
             log("Début génération...");
             try {
-                log("Requête 1 pour musique 1");
+                log("Requête 1");
                 const response1 = await fetch(NETLIFY_API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
@@ -51,7 +51,7 @@
                 document.getElementById('audio1').src = data1.audio_url || "";
                 document.getElementById('download1').href = data1.audio_url || "";
 
-                log("Requête 2 pour musique 2");
+                log("Requête 2");
                 const response2 = await fetch(NETLIFY_API_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
@@ -70,4 +70,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
