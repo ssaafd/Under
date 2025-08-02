@@ -26,9 +26,9 @@
     </div>
 
     <script>
-        const NETLIFY_API_URL = "https://undergroundstudioapp.netlify.app/api/generateAudio";
+        const NETLIFY_API_URL = "https://undergroundstudioapp.netlify.app/generateAudio"; // Remplacé "api" par nom
         const BASE44_APP_ID = "688deddde15fa30e9518db74";
-        const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Utilise env var Netlify
+        const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Env var ou clé test
 
         const monitor = document.getElementById('monitor');
         function log(message) {
