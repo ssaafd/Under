@@ -3,140 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Underground Studio - Générateur & Archive Pro</title>
-    <style>
-        body { background: linear-gradient(135deg, #0a0a0a, #1e1e1e); color: #00ff00; font-family: 'Roboto', sans-serif; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        .tv-frame { border: 12px solid #333; border-radius: 15px; box-shadow: 0 0 25px rgba(0,255,0,0.6); background: #1a1a1a; padding: 20px; position: relative; }
-        .tv-screen { background: #000; border: 2px solid #00ff00; padding: 15px; height: 450px; overflow-y: scroll; font-size: 14px; box-shadow: inset 0 0 15px #00ff00; animation: scanline 5s linear infinite, flicker 0.4s infinite; }
-        @keyframes scanline { 0% { background-position: 0 0; } 100% { background-position: 0 100%; } }
-        @keyframes flicker { 0%, 100% { opacity: 0.95; } 50% { opacity: 1; } }
-        .tv-screen::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.7)); pointer-events: none; }
-        .controls { margin: 20px 0; }
-        input { background: #222; color: #00ff00; border: 1px solid #00ff00; padding: 10px; width: 70%; border-radius: 5px; }
-        button { background: #006400; color: #fff; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; margin-left: 10px; }
-        button:hover { background: #004d00; }
-        .player { margin: 20px 0; text-align: center; }
-        audio { width: 100%; max-width: 400px; }
-        a { color: #00ff00; text-decoration: none; margin-left: 10px; }
-        .archive { margin-top: 20px; }
-        .archive-item { background: #2a2a2a; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
-    </style>
+    <title>Underground Studio - Console Admin Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <div class="tv-frame">
-            <div class="tv-screen" id="console"></div>
-        </div>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="logo">Underground Studio</div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#generator-section">Générateur IA</a></li>
+                    <li><a href="#archive-section">Archive Musique</a></li>
+                    <li><a href="#metrics-section">Statistiques API</a></li>
+                    <li><a href="#console-section">Console Matrix</a></li>
+                </ul>
+            </nav>
+        </aside>
 
-        <div class="controls">
-            <h2>Générateur de Musique</h2>
-            <input type="text" id="prompt" placeholder="Ex: reggae dub King tubby">
-            <button onclick="generateMusic()">Générer Test</button>
-        </div>
+        <main class="main-content">
+            <header class="top-header">
+                <h1>Tableau de Bord Admin</h1>
+                <div class="user-info">
+                    <span id="credits-display">Crédits: Chargement...</span>
+                    <button onclick="getRemainingCredits()">Rafraîchir Crédits</button>
+                </div>
+            </header>
 
-        <div class="player">
-            <audio controls id="audio"></audio>
-            <a id="download" href="" download>Download</a>
-        </div>
+            <section id="generator-section" class="content-section">
+                <h2>Générateur Musical IA</h2>
+                <div class="form-group">
+                    <label for="prompt">Prompt / Paroles:</label>
+                    <textarea id="prompt" placeholder="Décrivez votre musique (ex: 'reggae dub King tubby dela tape invasion') ou collez vos paroles."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="style">Style (Mode Personnalisé):</label>
+                    <input type="text" id="style" placeholder="Ex: 'Classical', 'Electronic'">
+                </div>
+                <div class="form-group">
+                    <label for="title">Titre (Mode Personnalisé):</label>
+                    <input type="text" id="title" placeholder="Ex: 'Peaceful Piano Meditation'">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="customMode">
+                    <label for="customMode">Mode Personnalisé</label>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="instrumental">
+                    <label for="instrumental">Instrumental</label>
+                </div>
+                <div class="form-group">
+                    <label for="model">Modèle IA:</label>
+                    <select id="model">
+                        <option value="V3_5">V3_5 (Standard)</option>
+                        <option value="V4">V4 (Qualité supérieure)</option>
+                        <option value="V4_5">V4_5 (Avancé, jusqu'à 8 min)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="negativeTags">Tags Négatifs (Optionnel):</label>
+                    <input type="text" id="negativeTags" placeholder="Ex: 'Heavy Metal, Upbeat Drums'">
+                </div>
+                <button onclick="generateMusic()">Générer Musique</button>
+                <button onclick="generateLyrics()">Générer Paroles</button>
+                
+                <div id="genResult" class="music-players">
+                    <h3>Musiques Générées:</h3>
+                    <div class="music-track">
+                        <audio controls id="audio1"></audio>
+                        <a id="download1" href="" download class="download-link">Télécharger Musique 1</a>
+                    </div>
+                    <div class="music-track">
+                        <audio controls id="audio2"></audio>
+                        <a id="download2" href="" download class="download-link">Télécharger Musique 2</a>
+                    </div>
+                </div>
+            </section>
 
-        <div class="controls">
-            <h2>Récupérer de Base44</h2>
-            <input type="text" id="trackId" placeholder="Track ID (ex: 44)">
-            <button onclick="retrieveMusic()">Récupérer</button>
-        </div>
+            <section id="base44-section" class="content-section">
+                <h2>Récupérer & Archiver de Base44</h2>
+                <div class="form-group">
+                    <label for="base44TrackId">ID de Piste Base44:</label>
+                    <input type="text" id="base44TrackId" value="44" placeholder="Track ID (ex. 44)">
+                </div>
+                <button onclick="retrieveAndArchiveBase44()">Récupérer & Archiver</button>
+            </section>
 
-        <div class="archive" id="archive"></div>
+            <section id="archive-section" class="content-section">
+                <h2>Archive Musicale</h2>
+                <div class="archive-controls">
+                    <input type="text" id="archiveSearch" placeholder="Rechercher dans l'archive...">
+                    <button onclick="searchArchive()">Rechercher</button>
+                    <button onclick="clearArchive()">Effacer Archive</button>
+                </div>
+                <div id="archiveDisplay" class="archive-list"></div>
+            </section>
+
+            <section id="metrics-section" class="content-section">
+                <h2>Statistiques API</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Crédits Restants</h3>
+                        <p id="metric-credits">N/A</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Tâches Réussies</h3>
+                        <p id="metric-success-tasks">0</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Tâches Échouées</h3>
+                        <p id="metric-failed-tasks">0</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Temps Moyen Génération</h3>
+                        <p id="metric-avg-time">N/A</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="console-section" class="content-section">
+                <h2>Console Matrix TV Vintage</h2>
+                <div class="tv-frame">
+                    <div class="tv-screen" id="console"></div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <script>
-        const API_URL = "https://undergroundstudioapp.netlify.app/generateAudio"; // Lien fixe
-        const BASE44_API_URL = "https://base44.app/api/apps/" + process.env.BASE44_APP_ID + "/entities/Track/";
-        const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Fallback, révoque après
-        const consoleEl = document.getElementById('console');
-        let archive = JSON.parse(localStorage.getItem('archive') || '[]');
-
-        function log(message) {
-            consoleEl.innerHTML += `<p>${new Date().toLocaleTimeString()} - ${message}</p>`;
-            consoleEl.scrollTop = consoleEl.scrollHeight;
-        }
-
-        async function generateMusic() {
-            const prompt = document.getElementById('prompt').value;
-            log("Démarrage: Vérification du prompt...");
-            if (!prompt) { log("Erreur: Prompt vide."); return; }
-            log("Requête: Envoi à " + API_URL);
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${BASE44_API_KEY}` },
-                    body: JSON.stringify({ prompt, trackId: Date.now().toString().slice(-6), customMode: false, instrumental: true, model: "V3_5" })
-                });
-                log("Réponse: Statut " + response.status);
-                if (!response.ok) throw new Error("Échec: " + response.status);
-                const data = await response.json();
-                log("Succès: TaskID " + data.taskId + ", URL: " + (data.audio_url || "N/A"));
-                document.getElementById('audio').src = data.audio_url || "";
-                document.getElementById('download').href = data.audio_url || "";
-                archive.push({ id: data.taskId, url: data.audio_url || "", prompt });
-                localStorage.setItem('archive', JSON.stringify(archive));
-                updateArchive();
-                log("Terminé: Musique générée et archivée.");
-            } catch (error) {
-                log("Erreur: " + error.message);
-            }
-        }
-
-        async function retrieveMusic() {
-            const trackId = document.getElementById('trackId').value;
-            log("Démarrage: Vérification Track ID...");
-            if (!trackId) { log("Erreur: Track ID vide."); return; }
-            log("Requête: Récupération de " + BASE44_API_URL + trackId);
-            try {
-                const response = await fetch(BASE44_API_URL + trackId, { headers: { "Authorization": `Bearer ${BASE44_API_KEY}` } });
-                log("Réponse: Statut " + response.status);
-                if (!response.ok) throw new Error("Échec: " + response.status);
-                const data = await response.json();
-                log("Succès: URL " + (data.audio_url || "N/A"));
-                document.getElementById('audio').src = data.audio_url || "";
-                document.getElementById('download').href = data.audio_url || "";
-                archive.push({ id: trackId, url: data.audio_url || "", prompt: data.prompt || "N/A" });
-                localStorage.setItem('archive', JSON.stringify(archive));
-                updateArchive();
-                log("Terminé: Track récupéré et archivé.");
-            } catch (error) {
-                log("Erreur: " + error.message);
-            }
-        }
-
-        function updateArchive() {
-            const archiveDiv = document.getElementById('archive');
-            archiveDiv.innerHTML = archive.map(item => `
-                <div class="archive-item">Track ${item.id} (${item.prompt})
-                    <audio controls src="${item.url}"></audio>
-                    <a href="${item.url}" download="track_${item.id}.mp3">Download</a>
-                </div>
-            `).join('');
-        }
-        updateArchive();
-        log("Système prêt: Attente d'action.");
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
-
-### Où Mettre
-- **Racine GitHub** : Sauvegarde comme `studio.html` dans `UndergroundStudio/` via GitHub éditeur.
-- **Netlify Env Vars** : Dashboard > Settings > Environment Variables :
-  - `BASE44_APP_ID=688deddde15fa30e9518db74`
-  - `BASE44_API_KEY=a71b9a537cc3a41a9f3623ffd3c624e2`
-- **Déploiement** : Pousse sur GitHub, attends redéploiement.
-
-### Lien Fixe
-- **URL** : `https://undergroundstudioapp.netlify.app/studio.html` (ne changera plus).
-
-### Test
-- Ouvre `https://undergroundstudioapp.netlify.app/studio.html`.
-- Entre prompt, clique "Générer Test", entre Track ID, clique "Récupérer", joue/download.
-- Console loggue étapes, erreurs.
-
-Révoque clé après. Dis résultat. (01:21 AM CEST, 03/08/2025)
