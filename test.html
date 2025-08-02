@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Underground Studio - Générateur & Archive</title>
+    <title>Underground Studio - Générateur & Archive Pro</title>
     <style>
         body { background: linear-gradient(135deg, #0a0a0a, #1e1e1e); color: #00ff00; font-family: 'Roboto', sans-serif; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
@@ -50,7 +50,7 @@
     </div>
 
     <script>
-        const API_URL = "https://undergroundstudioapp.netlify.app/generateAudio";
+        const API_URL = "https://undergroundstudioapp.netlify.app/generateAudio"; // Lien fixe
         const BASE44_API_URL = "https://base44.app/api/apps/" + process.env.BASE44_APP_ID + "/entities/Track/";
         const BASE44_API_KEY = process.env.BASE44_API_KEY || "a71b9a537cc3a41a9f3623ffd3c624e2"; // Fallback, révoque après
         const consoleEl = document.getElementById('console');
@@ -121,21 +121,22 @@
         updateArchive();
         log("Système prêt: Attente d'action.");
     </script>
-</head>
-<body>
 </body>
 </html>
 
 ### Où Mettre
-- **Racine GitHub** : Sauvegarde comme `suno-like.html` dans `UndergroundStudio/` via GitHub éditeur.
+- **Racine GitHub** : Sauvegarde comme `studio.html` dans `UndergroundStudio/` via GitHub éditeur.
 - **Netlify Env Vars** : Dashboard > Settings > Environment Variables :
   - `BASE44_APP_ID=688deddde15fa30e9518db74`
   - `BASE44_API_KEY=a71b9a537cc3a41a9f3623ffd3c624e2`
 - **Déploiement** : Pousse sur GitHub, attends redéploiement.
 
+### Lien Fixe
+- **URL** : `https://undergroundstudioapp.netlify.app/studio.html` (ne changera plus).
+
 ### Test
-- Ouvre `https://undergroundstudioapp.netlify.app/suno-like.html`.
-- Entre prompt, clique "Générer Test", récupère via Track ID, joue/download.
+- Ouvre `https://undergroundstudioapp.netlify.app/studio.html`.
+- Entre prompt, clique "Générer Test", entre Track ID, clique "Récupérer", joue/download.
 - Console loggue étapes, erreurs.
 
-Révoque clé après. Dis résultat. (01:13 AM CEST, 03/08/2025)
+Révoque clé après. Dis résultat. (01:21 AM CEST, 03/08/2025)
