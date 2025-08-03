@@ -1,39 +1,54 @@
-// netlify/functions/get-suno-credits.js
-const fetch = require('node-fetch');
+// netlify/functions/get-suno-details.js
+// In a real application, this would query your persistent database.
+// For this example, we're importing the in-memory store from suno-callback.
+// This is a hack and will not work reliably across cold starts.
+const { getTaskResult } = require('./suno-callback'); // S_R1, S_R2
+
+// En-têtes CORS communs pour toutes les fonctions
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
 
 exports.handler = async (event, context) => {
-    if (event.httpMethod!== 'GET') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
-    }
-
-    const SUNO_API_KEY = process.env.SUNO_API_KEY;
-    if (!SUNO_API_KEY) {
-        return { statusCode: 500, body: JSON.stringify({ message: 'Clé API Suno non configurée.' }) };
-    }
-
-    try {
-        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { // Assuming a /credits endpoint
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${SUNO_API_KEY}`,
-                'Content-Type': 'application/json',
-            },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error('Suno Credits API Error:', data);
-            return {
-                statusCode: response.status,
-                body: JSON.stringify({ message: data.msg |
-
-| 'Erreur de l\'API Suno pour les crédits', details: data }),
-            };
-        }
-
+    // Gère la requête OPTIONS (preflight)
+    if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 200,
+            headers: corsHeaders,
+            body: '',
+        };
+    }
+
+    if (event.httpMethod!== 'GET') {
+        return { statusCode: 405, headers: corsHeaders, body: 'Method Not Allowed' };
+    }
+
+    const taskId = event.queryStringParameters.taskId;
+    if (!taskId) {
+        return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ message: 'Task ID is required.' }) };
+    }
+
+    // Simule la récupération depuis une base de données.
+    // Dans un scénario réel, vous interrogeriez votre base de données réelle ici.
+    // Exemple: const result = await db.collection('sunoTasks').findOne({ taskId: taskId });
+    const result = getTaskResult(taskId); // Cela ne fonctionnera que si suno-callback a été invoqué récemment et est toujours "chaud".
+
+    if (result) {
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify(result),
+        };
+    } else {
+        return {
+            statusCode: 404,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Task not found or not yet completed.', callbackType: 'pending', msg: 'En cours...' }),
+        };
+    }
+};
             body: JSON.stringify({ creditsRemaining: data.data.creditsRemaining, message: 'Crédits récupérés.' }),
         };
 
