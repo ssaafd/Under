@@ -1,19 +1,18 @@
 // netlify/functions/suno-proxy.js
 const fetch = require('node-fetch');
 
-// En-têtes CORS communs pour toutes les fonctions
+// En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 exports.handler = async (event, context) => {
-    // Gère la requête OPTIONS (preflight)
+    // Réponse immédiate pour les requêtes OPTIONS (pré-vérification du navigateur)
     if (event.httpMethod === 'OPTIONS') {
         return {
-            statusCode: 200,
+            statusCode: 204, // Code 204 pour OPTIONS sans contenu
             headers: corsHeaders,
             body: '',
         };
@@ -28,20 +27,19 @@ exports.handler = async (event, context) => {
         return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Clé API Suno non configurée sur Netlify.' }) };
     }
 
-    // L'URL de votre site Netlify pour le callback
     const siteUrl = process.env.URL |
 
 | 'https://undergroundstudioapp.netlify.app'; // [3]
-    const callbackUrl = `${siteUrl}/.netlify/functions/suno-callback`; //
+    const callbackUrl = `${siteUrl}/.netlify/functions/suno-callback`; // S_R1, S_R2, S_R3, S_R4, S_R5
 
     try {
         const requestBody = JSON.parse(event.body);
 
         // Logique pour la génération de musique
-        if (requestBody.prompt &&!requestBody.lyricsPrompt) { //
+        if (requestBody.prompt &&!requestBody.lyricsPrompt) { // S_R16
             const { prompt, style, title, customMode, instrumental, model, negativeTags } = requestBody;
 
-            // Validations des paramètres selon la documentation Sunoapi.org
+            // Validations des paramètres selon la documentation Sunoapi.org S_R16
             if (!customMode && prompt.length > 400) {
                 return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ message: 'Le prompt en mode non personnalisé ne doit pas dépasser 400 caractères.' }) };
             }
@@ -69,7 +67,7 @@ exports.handler = async (event, context) => {
                 customMode,
                 instrumental,
                 model,
-                callBackUrl: callbackUrl, // L'API Sunoapi.org enverra les résultats ici
+                callBackUrl: callbackUrl, // L'API Sunoapi.org enverra les résultats ici S_R13, S_R16
             };
 
             if (customMode) {
@@ -82,10 +80,10 @@ exports.handler = async (event, context) => {
 
             console.log('Envoi à Suno API:', JSON.stringify(sunoPayload, null, 2));
 
-            const response = await fetch('https://api.sunoapi.org/api/v1/generate', { //
+            const response = await fetch('https://api.sunoapi.org/api/v1/generate', { // S_R13, S_R16, S_R28, S_R29, S_R30
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${SUNO_API_KEY}`, //
+                    'Authorization': `Bearer ${SUNO_API_KEY}`, // S_R13, S_R16, S_R23, S_R24, S_R25, S_R50, S_R51, S_R52
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(sunoPayload),
@@ -97,7 +95,7 @@ exports.handler = async (event, context) => {
                 console.error('Erreur Suno API (génération musique):', data);
                 return {
                     statusCode: response.status,
-                    headers: corsHeaders,
+                    headers: corsHeaders, // CRITIQUE : Ajouter ça
                     body: JSON.stringify({ message: data.msg |
 
 | 'Erreur de l\'API Suno', details: data }),
@@ -106,18 +104,18 @@ exports.handler = async (event, context) => {
 
             return {
                 statusCode: 200,
-                headers: corsHeaders,
+                headers: corsHeaders, // CRITIQUE : Ajouter ça
                 body: JSON.stringify({ taskId: data.data.taskId, message: 'Génération musicale lancée.' }),
             };
         }
-        // Logique pour la génération de paroles (si l'API Sunoapi.org a un endpoint dédié)
-        else if (requestBody.lyricsPrompt) { //
+        // Logique pour la génération de paroles (si l'API Sunoapi.org a un endpoint dédié) S_R28, S_R29, S_R30
+        else if (requestBody.lyricsPrompt) { // S_R28, S_R29, S_R30
             const { lyricsPrompt } = requestBody;
             const sunoPayload = {
                 theme: lyricsPrompt,
             };
 
-            const response = await fetch('https://api.sunoapi.org/api/v1/lyrics', { // Endpoint hypothétique pour les paroles
+            const response = await fetch('https://api.sunoapi.org/api/v1/lyrics', { // Endpoint hypothétique pour les paroles S_R28, S_R29, S_R30
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${SUNO_API_KEY}`,
@@ -132,7 +130,7 @@ exports.handler = async (event, context) => {
                 console.error('Erreur Suno API (génération paroles):', data);
                 return {
                     statusCode: response.status,
-                    headers: corsHeaders,
+                    headers: corsHeaders, // CRITIQUE : Ajouter ça
                     body: JSON.stringify({ message: data.msg |
 
 | 'Erreur de l\'API Suno pour les paroles', details: data }),
@@ -143,13 +141,13 @@ exports.handler = async (event, context) => {
             if (data.data && data.data.lyricsData && data.data.lyricsData.length > 0) {
                 return {
                     statusCode: 200,
-                    headers: corsHeaders,
+                    headers: corsHeaders, // CRITIQUE : Ajouter ça
                     body: JSON.stringify({ taskId: data.data.taskId, lyrics: data.data.lyricsData.text, message: 'Paroles générées.' }),
                 };
             } else {
                 return {
                     statusCode: 200,
-                    headers: corsHeaders,
+                    headers: corsHeaders, // CRITIQUE : Ajouter ça
                     body: JSON.stringify({ taskId: data.data.taskId, message: 'Génération de paroles lancée.' }),
                 };
             }
