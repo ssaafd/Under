@@ -2,7 +2,7 @@
 // In a real application, this would query your persistent database.
 // For this example, we're importing the in-memory store from suno-callback.js.
 // This is a hack and will not work reliably across cold starts.
-const { getTaskResult } = require('./suno-callback'); // S_R1, S_R2, S_R3
+const { getTaskResult } = require('./suno-callback'); // S_R1, S_R2, S_R4
 
 // En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
