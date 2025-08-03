@@ -1,5 +1,5 @@
 // netlify/functions/base44-proxy.js
-const fetch = require('node-fetch');
+const fetch = require('node-fetch'); // [9, 10]
 
 // En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
@@ -24,8 +24,8 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ message: 'Méthode non autorisée. Seules les requêtes GET sont acceptées.' }) };
     }
 
-    const BASE44_APP_ID = process.env.BASE44_APP_ID; // [4, 5, 6, 7]
-    const BASE44_API_KEY = process.env.BASE44_API_KEY; // [5, 8, 7]
+    const BASE44_APP_ID = process.env.BASE44_APP_ID; // [4, 5, 7]
+    const BASE44_API_KEY = process.env.BASE44_API_KEY; // S_R15, S_R29, S_R41, S_R52, S_R65, S_R66
 
     if (!BASE44_APP_ID ||!BASE44_API_KEY) {
         console.error('Erreur de configuration: Clés API Base44 non définies.');
@@ -40,14 +40,14 @@ exports.handler = async (event, context) => {
     // L'URL de l'API Base44 pour récupérer une entité "Track"
     // Note: Base44.app est une plateforme de création d'applications/gestion d'entités, pas un hébergeur de fichiers audio.
     // L'entité 'Track' et son champ 'audio_url' doivent exister dans votre configuration Base44.
-    const BASE44_API_URL = `https://base44.app/api/apps/${BASE44_APP_ID}/entities/Track/${trackId}`; // [5, 7]
+    const BASE44_API_URL = `https://base44.app/api/apps/${BASE44_APP_ID}/entities/Track/${trackId}`; // [3, 4, 5, 6, 7, 8]
 
     try {
         console.log(`Tentative de récupération de Base44: ${BASE44_API_URL}`);
-        const response = await fetch(BASE44_API_URL, { // S_R7, S_R8, [5, 7]
+        const response = await fetch(BASE44_API_URL, { // S_R15, S_R29, S_R41, S_R52, S_R65, S_R66
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${BASE44_API_KEY}`, // [8, 7]
+                'Authorization': `Bearer ${BASE44_API_KEY}`, // S_R15, S_R29, S_R41, S_R52, S_R65, S_R66
                 'Content-Type': 'application/json',
             },
         });
