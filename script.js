@@ -1,39 +1,181 @@
 const consoleEl = document.getElementById('console');
 const promptInput = document.getElementById('prompt');
-const styleInput = document.getElementById('style');
-const titleInput = document.getElementById('title');
-const customModeCheckbox = document.getElementById('customMode');
-const instrumentalCheckbox = document.getElementById('instrumental');
-const modelSelect = document.getElementById('model');
-const negativeTagsInput = document.getElementById('negativeTags');
 const audio1 = document.getElementById('audio1');
 const download1 = document.getElementById('download1');
-const audio2 = document.getElementById('audio2');
-const download2 = document.getElementById('download2');
-const base44TrackIdInput = document.getElementById('base44TrackId');
-const archiveDisplay = document.getElementById('archiveDisplay');
-const archiveSearchInput = document.getElementById('archiveSearch');
 const creditsDisplay = document.getElementById('credits-display');
-const metricCredits = document.getElementById('metric-credits');
-const metricSuccessTasks = document.getElementById('metric-success-tasks');
-const metricFailedTasks = document.getElementById('metric-failed-tasks');
-const metricAvgTime = document.getElementById('metric-avg-time');
 
-// --- Gestion du stockage local (pour l'archive et les métriques) ---
-// Nous utilisons localStorage pour une mise en œuvre rapide de l'archive.
-// L'intégration complète avec Base44 pour la persistance sera une étape ultérieure.
-let archive = JSON.parse(localStorage.getItem('musicArchive')) ||; // S_R33, S_R35, S_R37, S_R39, S_R46
-let consoleLogHistory = JSON.parse(localStorage.getItem('consoleLogHistory')) ||; // S_R33, S_R35, S_R37, S_R39, S_R46
-let metrics = JSON.parse(localStorage.getItem('metrics')) |
+// --- Logique de la Console (styles inline pour la lisibilité) ---
+function log(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const p = document.createElement('p');
+    let color = 'lime'; // Vert par défaut
+    if (type === 'info') color = 'cyan';
+    else if (type === 'success') color = 'lime';
+    else if (type === 'error') color = 'red';
+    else if (type === 'warning') color = 'yellow';
 
-| {
-    successTasks: 0,
-    failedTasks: 0,
-    totalGenerationTime: 0,
-    generationCount: 0
-};
+    p.style.margin = '0';
+    p.style.padding = '2px 0';
+    p.style.color = color;
+    p.style.wordBreak = 'break-word'; // Empêche le débordement des longues lignes
 
-function saveArchive() {
+    const timestampSpan = document.createElement('span');
+    timestampSpan.style.color = 'gray';
+    timestampSpan.style.marginRight = '5px';
+    timestampSpan.textContent = `[${timestamp}]`;
+    p.appendChild(timestampSpan);
+
+    const messageSpan = document.createElement('span');
+    messageSpan.innerHTML = message; // Utilise innerHTML pour interpréter les balises <a>
+    p.appendChild(messageSpan);
+
+    consoleEl.appendChild(p);
+    consoleEl.scrollTop = consoleEl.scrollHeight; // Défilement automatique vers le bas // S_R34
+}
+
+// --- Interaction API (via Fonctions Netlify) ---
+// URL FIXE de votre site Netlify où les fonctions sont déployées.
+// C'est CRITIQUE pour résoudre le problème de "Failed to fetch" si votre frontend est sur base44.app
+const NETLIFY_FUNCTIONS_BASE_URL = 'https://undergroundstudioapp.netlify.app/.netlify/functions'; // S_R22
+
+async function callNetlifyFunction(endpoint, method = 'GET', body = null) {
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'SimpleSunoTestApp/1.0', // Ajouté pour correspondre aux headers CORS du backend
+        },
+    };
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+
+    try {
+        log(`REQUÊTE: ${method} à ${NETLIFY_FUNCTIONS_BASE_URL}/${endpoint}`, 'info');
+        const response = await fetch(`${NETLIFY_FUNCTIONS_BASE_URL}/${endpoint}`, options);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            log(`ERREUR FONCTION NETLIFY (${response.status}): ${errorData.message |
+
+| response.statusText}`, 'error');
+            throw new Error(`Erreur API (${response.status}): ${errorData.message |
+
+| response.statusText}`);
+        }
+        log(`RÉPONSE: Statut ${response.status} de ${NETLIFY_FUNCTIONS_BASE_URL}/${endpoint}`, 'info');
+        return await response.json();
+    } catch (error) {
+        log(`ERREUR RÉSEAU/FONCTION: ${error.message}`, 'error');
+        throw error;
+    }
+}
+
+async function generateMusic() {
+    const prompt = promptInput.value;
+    if (!prompt) {
+        log("ERREUR: Le prompt est requis pour générer de la musique.", 'error');
+        return;
+    }
+
+    log("INIT: Préparation de la génération musicale avec Suno AI...", 'info');
+    const startTime = Date.now();
+
+    try {
+        // Appel à la fonction Netlify 'suno-proxy'
+        const data = await callNetlifyFunction('suno-proxy', 'POST', {
+            prompt: prompt,
+            customMode: false, // Mode simple pour le test
+            instrumental: false, // S_R19
+            model: 'V3_5', // Modèle de base pour le test // S_R19
+        });
+
+        log(`SUCCÈS: Tâche de génération lancée. ID de tâche: ${data.taskId}.`, 'success');
+        log(`INFO: La musique sera disponible via le callback. Sondage en cours...`, 'info');
+
+        // Nous allons sonder les résultats via get-suno-details
+        pollForMusicResults(data.taskId, startTime);
+
+    } catch (error) {
+        log(`ÉCHEC GÉNÉRATION MUSIQUE: ${error.message}`, 'error');
+    }
+}
+
+async function pollForMusicResults(taskId, startTime) {
+    log(`DÉBUT DU SONDAGE pour la tâche ${taskId}...`, 'info');
+    let attempts = 0;
+    const maxAttempts = 60; // Sonde pendant 10 minutes max (60 * 10 secondes)
+    const pollInterval = 10000; // 10 secondes
+
+    const intervalId = setInterval(async () => {
+        attempts++;
+        if (attempts > maxAttempts) {
+            clearInterval(intervalId);
+            log(`SONDAGE TERMINÉ: La tâche ${taskId} n'a pas été complétée dans le temps imparti.`, 'warning');
+            return;
+        }
+
+        log(`SONDAGE: Vérification du statut de la tâche ${taskId} (Tentative ${attempts}/${maxAttempts})...`, 'info');
+        try {
+            // Appel à la fonction Netlify 'get-suno-details'
+            const result = await callNetlifyFunction(`get-suno-details?taskId=${taskId}`);
+
+            if (result && result.data && result.data.callbackType === 'complete') {
+                clearInterval(intervalId);
+                const endTime = Date.now();
+                const duration = ((endTime - startTime) / 1000).toFixed(2);
+                log(`SUCCÈS: Musique générée pour la tâche ${taskId} en ${duration} secondes.`, 'success');
+
+                const musicData = result.data.data; // Tableau de 2 musiques
+                if (musicData && musicData.length > 0) {
+                    audio1.src = musicData.audio_url |
+
+| '';
+                    download1.href = musicData.audio_url |
+
+| '';
+                    download1.download = `suno_music_${musicData.id}.mp3`;
+                    log(`LIEN MUSIQUE: <a href="${musicData.audio_url}" target="_blank" style="color: cyan; text-decoration: underline;">${musicData.audio_url}</a>`, 'success');
+                    log(`COMMENTAIRE: Modèle: ${musicData.model_name}, Titre: "${musicData.title |
+
+| 'N/A'}", Tags: "${musicData.tags |
+| 'N/A'}"`, 'info');
+                } else {
+                    log("AVERTISSEMENT: Aucune URL audio trouvée dans la réponse de Suno.", 'warning');
+                }
+
+            } else if (result && result.data && result.data.callbackType === 'error') {
+                clearInterval(intervalId);
+                log(`ÉCHEC GÉNÉRATION MUSIQUE pour la tâche ${taskId}: ${result.msg}`, 'error');
+            } else {
+                log(`STATUT TÂCHE ${taskId}: ${result.msg |
+
+| 'En cours...'}`, 'info');
+            }
+        } catch (error) {
+            clearInterval(intervalId);
+            log(`ERREUR LORS DU SONDAGE pour la tâche ${taskId}: ${error.message}`, 'error');
+        }
+    }, pollInterval);
+}
+
+async function getRemainingCredits() {
+    log("INIT: Récupération des crédits Suno AI...", 'info');
+    try {
+        // Appel à la fonction Netlify 'get-suno-credits'
+        const data = await callNetlifyFunction('get-suno-credits');
+        creditsDisplay.textContent = data.creditsRemaining;
+        log(`SUCCÈS: Crédits restants: ${data.creditsRemaining}.`, 'success');
+    } catch (error) {
+        log(`ÉCHEC RÉCUPÉRATION CRÉDITS: ${error.message}`, 'error');
+    }
+}
+
+// --- Chargement Initial ---
+document.addEventListener('DOMContentLoaded', () => {
+    log("CONSOLE: Générateur simple démarré. Entrez un prompt et générez!", 'info');
+    getRemainingCredits(); // Récupère les crédits au chargement
+});
     localStorage.setItem('musicArchive', JSON.stringify(archive)); // S_R33, S_R35, S_R39, S_R44, S_R46
 }
 
