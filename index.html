@@ -1,238 +1,360 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur Musique Simple</title>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <title>AI Music Studio - Base44 Integration</title>
+    <style>
+        :root {
+            --rack-bg: #222;
+            --panel-bg: #333;
+            --accent-color: #00ff99; /* Neon green for modern tech feel */
+            --text-color: #eee;
+            --border-color: #444;
+            --control-bg: #555;
+            --input-bg: #1a1a1a;
+            --font-family: 'Roboto Mono', monospace; /* Techy font */
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #1a1a1a;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+       .studio-rack {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--rack-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 153, 0.2);
+        }
+
+       .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+       .panel-header {
+            font-size: 1.2em;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* Music Generation Panel */
+       .generation-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+       .generation-form input[type="text"],
+       .generation-form textarea,
+       .generation-form select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 4px;
+            font-family: var(--font-family);
+            font-size: 0.9em;
+        }
+
+       .generation-form textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+       .generation-form button {
+            background-color: var(--accent-color);
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+       .generation-form button:hover {
+            background-color: #00e680;
+            transform: translateY(-2px);
+        }
+
+        /* Audio Player Panel */
+       .audio-player-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+       .audio-player-container audio {
+            width: 100%;
+            background-color: var(--input-bg);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        /* Custom player controls (optional, for advanced customization) */
+       .custom-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+       .custom-controls button {
+            background-color: var(--control-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+
+       .custom-controls button:hover {
+            background-color: #666;
+        }
+
+       .track-list {
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+       .track-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+       .track-list-item:last-child {
+            border-bottom: none;
+        }
+
+       .track-title {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+       .track-play-button {
+            background-color: var(--control-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s ease;
+        }
+
+       .track-play-button:hover {
+            background-color: #666;
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+           .studio-rack {
+                grid-template-columns: 1fr 1fr; /* Two columns for larger screens */
+            }
+           .generation-panel {
+                grid-column: span 1;
+            }
+           .player-panel {
+                grid-column: span 1;
+            }
+        }
+    </style>
 </head>
-<body style="font-family: 'VT323', monospace; background-color: black; color: lime; margin: 20px;">
+<body>
+    <div class="studio-rack">
+        <div class="panel generation-panel">
+            <div class="panel-header">AI Music Generator</div>
+            <form class="generation-form" id="musicGenerationForm">
+                <label for="prompt">Prompt (Describe your music):</label>
+                <textarea id="prompt" placeholder="e.g., 'A calm and relaxing piano track with soft melodies, suitable for meditation.'" required></textarea>
 
-    <h1 style="color: lime;">Générateur Musique Suno AI (Test Simple)</h1>
+                <label for="style">Style/Genre:</label>
+                <input type="text" id="style" placeholder="e.g., 'Classical', 'Jazz', 'Pop', 'Electronic Dance'" required>
 
-    <div style="margin-bottom: 20px; border: 1px solid lime; padding: 10px;">
-        <h2 style="color: lime;">Générer Musique</h2>
-        <label for="prompt" style="display: block; margin-bottom: 5px;">Prompt (ex: reggae dub King tubby):</label>
-        <textarea id="prompt" rows="4" style="width: 98%; background-color: #333; color: lime; border: 1px solid lime; padding: 5px; margin-bottom: 10px;"></textarea>
-        
-        <button onclick="generateMusic()" style="background-color: lime; color: black; border: 1px solid lime; padding: 8px 15px; cursor: pointer; margin-right: 10px;">Générer Musique</button>
-        <button onclick="getRemainingCredits()" style="background-color: gray; color: lime; border: 1px solid gray; padding: 8px 15px; cursor: pointer;">Rafraîchir Crédits (<span id="credits-display">Chargement...</span>)</button>
-    </div>
+                <label for="vibe">Vibe/Mood:</label>
+                <input type="text" id="vibe" placeholder="e.g., 'Energetic', 'Melancholy', 'Peaceful', 'Tense'">
 
-    <div style="margin-bottom: 20px; border: 1px solid lime; padding: 10px;">
-        <h2 style="color: lime;">Musique Générée</h2>
-        <audio controls id="audio1" style="width: 100%; margin-bottom: 10px;"></audio>
-        <a id="download1" href="" download style="color: cyan; text-decoration: underline;">Télécharger Musique</a>
-    </div>
+                <label for="title">Title (Max 80 characters):</label>
+                <input type="text" id="title" maxlength="80" placeholder="e.g., 'Sunset Meditation'" required>
 
-    <div style="margin-bottom: 20px; border: 1px solid lime; padding: 10px;">
-        <h2 style="color: lime;">Journal de la Console</h2>
-        <div id="console" style="height: 250px; overflow-y: scroll; border: 1px solid lime; background-color: #111; padding: 10px;">
+                <button type="submit">Generate Music</button>
+            </form>
+            <div id="generationStatus" style="margin-top: 15px; color: var(--accent-color);"></div>
+        </div>
+
+        <div class="panel player-panel">
+            <div class="panel-header">Music Playback</div>
+            <div class="audio-player-container">
+                <audio id="audioPlayer" controls></audio>
+                <div class="custom-controls">
+                    <button id="playPauseBtn">Play / Pause</button>
+                    <button id="stopBtn">Stop</button>
+                    <button id="nextTrackBtn">Next Track</button>
+                </div>
             </div>
+
+            <div class="track-list">
+                <div class="panel-header" style="margin-top: 20px; border-top: none; padding-top: 0;">Generated Tracks</div>
+                <div id="generatedTracksList">
+                    <div class="track-list-item">
+                        <span class="track-title">Example Track 1</span>
+                        <button class="track-play-button" data-audio-url="https://example.com/audio1.mp3">Play</button>
+                    </div>
+                    <div class="track-list-item">
+                        <span class="track-title">Example Track 2</span>
+                        <button class="track-play-button" data-audio-url="https://example.com/audio2.mp3">Play</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="script.js"></script>
-</body>
-</html>
-                    <textarea id="prompt" placeholder="Décrivez votre musique (ex: 'reggae dub King tubby dela tape invasion') ou collez vos paroles." style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3); min-height: 80px; resize: vertical;"></textarea>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="style" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Style (Mode Personnalisé):</label>
-                    <input type="text" id="style" placeholder="Ex: 'Classical', 'Electronic'" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="title" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Titre (Mode Personnalisé):</label>
-                    <input type="text" id="title" placeholder="Ex: 'Peaceful Piano Meditation'" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <div class="form-group checkbox-group" style="display: flex; align-items: center; margin-bottom: 15px;">
-                    <input type="checkbox" id="customMode" style="margin-right: 10px; width: 20px; height: 20px; accent-color: #00cc00;">
-                    <label for="customMode" style="color: #00ff00; font-size: 1.1em; margin-bottom: 0;">Mode Personnalisé</label>
-                </div>
-                <div class="form-group checkbox-group" style="display: flex; align-items: center; margin-bottom: 15px;">
-                    <input type="checkbox" id="instrumental" style="margin-right: 10px; width: 20px; height: 20px; accent-color: #00cc00;">
-                    <label for="instrumental" style="color: #00ff00; font-size: 1.1em; margin-bottom: 0;">Instrumental</label>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="model" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Modèle IA:</label>
-                    <select id="model" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                        <option value="V3_5">V3_5 (Standard)</option>
-                        <option value="V4">V4 (Qualité supérieure)</option>
-                        <option value="V4_5">V4_5 (Avancé, jusqu'à 8 min)</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="negativeTags" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Tags Négatifs (Optionnel):</label>
-                    <input type="text" id="negativeTags" placeholder="Ex: 'Heavy Metal, Upbeat Drums'" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <button onclick="generateMusic()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Générer Musique</button>
-                <button onclick="generateLyrics()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Générer Paroles</button>
-                
-                <div id="genResult" class="music-players" style="margin-top: 20px; border-top: 1px dashed #00cc00; padding-top: 20px;">
-                    <h3 style="color: #00ff00;">Musiques Générées:</h3>
-                    <div class="music-track" style="margin-bottom: 15px; padding: 10px; border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 5px; background-color: rgba(0, 255, 0, 0.05);">
-                        <audio controls id="audio1" style="width: 100%; margin-bottom: 10px; filter: sepia(100%) saturate(200%) hue-rotate(90deg) brightness(70%) contrast(150%);"></audio>
-                        <a id="download1" href="" download class="download-link" style="color: #00cc00; text-decoration: none; font-size: 0.9em; display: inline-block; margin-top: 5px; border: 1px dashed #00cc00; padding: 5px 10px;">Télécharger Musique 1</a>
-                    </div>
-                    <div class="music-track" style="margin-bottom: 15px; padding: 10px; border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 5px; background-color: rgba(0, 255, 0, 0.05);">
-                        <audio controls id="audio2" style="width: 100%; margin-bottom: 10px; filter: sepia(100%) saturate(200%) hue-rotate(90deg) brightness(70%) contrast(150%);"></audio>
-                        <a id="download2" href="" download class="download-link" style="color: #00cc00; text-decoration: none; font-size: 0.9em; display: inline-block; margin-top: 5px; border: 1px dashed #00cc00; padding: 5px 10px;">Télécharger Musique 2</a>
-                    </div>
-                </div>
-            </section>
+    <script>
+        // Basic JavaScript for UI interaction and placeholder for API calls
+        const musicGenerationForm = document.getElementById('musicGenerationForm');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const generatedTracksList = document.getElementById('generatedTracksList');
+        const generationStatus = document.getElementById('generationStatus');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const nextTrackBtn = document.getElementById('nextTrackBtn');
 
-            <section id="base44-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Récupérer & Archiver de Base44</h2>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="base44TrackId" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">ID de Piste Base44:</label>
-                    <input type="text" id="base44TrackId" value="44" placeholder="Track ID (ex. 44)" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <button onclick="retrieveAndArchiveBase44()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Récupérer & Archiver</button>
-            </section>
+        let currentTrackIndex = 0;
+        let tracks =; // Array to store generated track data
 
-            <section id="archive-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Archive Musicale</h2>
-                <div class="archive-controls" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <input type="text" id="archiveSearch" placeholder="Rechercher dans l'archive..." style="flex-grow: 1; width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                    <button onclick="searchArchive()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Rechercher</button>
-                    <button onclick="clearArchive()" style="background-color: #ff0000; color: #0a0a0a; border: 1px solid #ff0000; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #ff0000; margin-right: 10px; margin-top: 10px;">Effacer Archive</button>
-                </div>
-                <div id="archiveDisplay" class="archive-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #00cc00; padding: 10px; background-color: #0a0a0a; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                    </div>
-            </section>
+        // Function to simulate adding a track (replace with actual API fetch)
+        function addTrackToUI(title, audioUrl) {
+            const trackItem = document.createElement('div');
+            trackItem.classList.add('track-list-item');
+            trackItem.innerHTML = `
+                <span class="track-title">${title}</span>
+                <button class="track-play-button" data-audio-url="${audioUrl}">Play</button>
+            `;
+            generatedTracksList.appendChild(trackItem);
+            tracks.push({ title, audioUrl });
 
-            <section id="metrics-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Statistiques API</h2>
-                <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Crédits Restants</h3>
-                        <p id="metric-credits" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">N/A</p>
-                    </div>
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Tâches Réussies</h3>
-                        <p id="metric-success-tasks" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">0</p>
-                    </div>
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Tâches Échouées</h3>
-                        <p id="metric-failed-tasks" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">0</p>
-                    </div>
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Temps Moyen Génération</h3>
-                        <p id="metric-avg-time" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">N/A</p>
-                    </div>
-                </div>
-            </section>
+            // Attach event listener to the new play button
+            trackItem.querySelector('.track-play-button').addEventListener('click', (event) => {
+                const url = event.target.dataset.audioUrl;
+                audioPlayer.src = url;
+                audioPlayer.play();
+                playPauseBtn.textContent = 'Pause';
+            });
+        }
 
-            <section id="console-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Console Matrix TV Vintage</h2>
-                <div class="tv-frame" style="border: 10px solid #333; border-radius: 20px; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); background: #111; padding: 20px; width: calc(100% - 40px); margin: auto; position: relative; overflow: hidden;">
-                    <div class="tv-screen" id="console" style="background-color: #000; border: 1px solid #00cc00; padding: 15px; height: 400px; overflow-y: scroll; font-size: 1em; box-shadow: inset 0 0 10px #00cc00; position: relative; color: #00ff00; text-shadow: 0 0 5px #00ff00;">
-                        </div>
-                </div>
-            </section>
-        </main>
-    </div>
+        // Initial example tracks
+        addTrackToUI('Ambient Forest Sounds', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+        addTrackToUI('Upbeat Synthwave', 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3');
 
-    <script src="script.js"></script>
-</body>
-</html>
-                    <textarea id="prompt" placeholder="Décrivez votre musique (ex: 'reggae dub King tubby dela tape invasion') ou collez vos paroles." style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3); min-height: 80px; resize: vertical;"></textarea>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="style" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Style (Mode Personnalisé):</label>
-                    <input type="text" id="style" placeholder="Ex: 'Classical', 'Electronic'" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="title" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Titre (Mode Personnalisé):</label>
-                    <input type="text" id="title" placeholder="Ex: 'Peaceful Piano Meditation'" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <div class="form-group checkbox-group" style="display: flex; align-items: center; margin-bottom: 15px;">
-                    <input type="checkbox" id="customMode" style="margin-right: 10px; width: 20px; height: 20px; accent-color: #00cc00;">
-                    <label for="customMode" style="color: #00ff00; font-size: 1.1em; margin-bottom: 0;">Mode Personnalisé</label>
-                </div>
-                <div class="form-group checkbox-group" style="display: flex; align-items: center; margin-bottom: 15px;">
-                    <input type="checkbox" id="instrumental" style="margin-right: 10px; width: 20px; height: 20px; accent-color: #00cc00;">
-                    <label for="instrumental" style="color: #00ff00; font-size: 1.1em; margin-bottom: 0;">Instrumental</label>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="model" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Modèle IA:</label>
-                    <select id="model" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                        <option value="V3_5">V3_5 (Standard)</option>
-                        <option value="V4">V4 (Qualité supérieure)</option>
-                        <option value="V4_5">V4_5 (Avancé, jusqu'à 8 min)</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="negativeTags" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Tags Négatifs (Optionnel):</label>
-                    <input type="text" id="negativeTags" placeholder="Ex: 'Heavy Metal, Upbeat Drums'" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <button onclick="generateMusic()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Générer Musique</button>
-                <button onclick="generateLyrics()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Générer Paroles</button>
-                
-                <div id="genResult" class="music-players" style="margin-top: 20px; border-top: 1px dashed #00cc00; padding-top: 20px;">
-                    <h3 style="color: #00ff00;">Musiques Générées:</h3>
-                    <div class="music-track" style="margin-bottom: 15px; padding: 10px; border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 5px; background-color: rgba(0, 255, 0, 0.05);">
-                        <audio controls id="audio1" style="width: 100%; margin-bottom: 10px; filter: sepia(100%) saturate(200%) hue-rotate(90deg) brightness(70%) contrast(150%);"></audio>
-                        <a id="download1" href="" download class="download-link" style="color: #00cc00; text-decoration: none; font-size: 0.9em; display: inline-block; margin-top: 5px; border: 1px dashed #00cc00; padding: 5px 10px;">Télécharger Musique 1</a>
-                    </div>
-                    <div class="music-track" style="margin-bottom: 15px; padding: 10px; border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 5px; background-color: rgba(0, 255, 0, 0.05);">
-                        <audio controls id="audio2" style="width: 100%; margin-bottom: 10px; filter: sepia(100%) saturate(200%) hue-rotate(90deg) brightness(70%) contrast(150%);"></audio>
-                        <a id="download2" href="" download class="download-link" style="color: #00cc00; text-decoration: none; font-size: 0.9em; display: inline-block; margin-top: 5px; border: 1px dashed #00cc00; padding: 5px 10px;">Télécharger Musique 2</a>
-                    </div>
-                </div>
-            </section>
+        musicGenerationForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            generationStatus.textContent = 'Generating music... Please wait.';
 
-            <section id="base44-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Récupérer & Archiver de Base44</h2>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="base44TrackId" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">ID de Piste Base44:</label>
-                    <input type="text" id="base44TrackId" value="44" placeholder="Track ID (ex. 44)" style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                </div>
-                <button onclick="retrieveAndArchiveBase44()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Récupérer & Archiver</button>
-            </section>
+            const prompt = document.getElementById('prompt').value;
+            const style = document.getElementById('style').value;
+            const vibe = document.getElementById('vibe').value;
+            const title = document.getElementById('title').value;
 
-            <section id="archive-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Archive Musicale</h2>
-                <div class="archive-controls" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <input type="text" id="archiveSearch" placeholder="Rechercher dans l'archive..." style="flex-grow: 1; width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                    <button onclick="searchArchive()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00; margin-right: 10px; margin-top: 10px;">Rechercher</button>
-                    <button onclick="clearArchive()" style="background-color: #ff0000; color: #0a0a0a; border: 1px solid #ff0000; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #ff0000; margin-right: 10px; margin-top: 10px;">Effacer Archive</button>
-                </div>
-                <div id="archiveDisplay" class="archive-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #00cc00; padding: 10px; background-color: #0a0a0a; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);">
-                    </div>
-            </section>
+            // --- Placeholder for actual API calls ---
+            // In a real application, you would make an API call here to Suno AI (via KIE.ai or AIMLAPI.com)
+            // and then update Base44 with the generated track details.
 
-            <section id="metrics-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Statistiques API</h2>
-                <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Crédits Restants</h3>
-                        <p id="metric-credits" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">N/A</p>
-                    </div>
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Tâches Réussies</h3>
-                        <p id="metric-success-tasks" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">0</p>
-                    </div>
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Tâches Échouées</h3>
-                        <p id="metric-failed-tasks" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">0</p>
-                    </div>
-                    <div class="metric-card" style="background-color: #0a0a0a; border: 1px solid #00cc00; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);">
-                        <h3 style="color: #00cc00; margin-top: 0; font-size: 1.2em;">Temps Moyen Génération</h3>
-                        <p id="metric-avg-time" style="font-size: 2em; font-weight: bold; color: #00ff00; text-shadow: 0 0 5px #00ff00;">N/A</p>
-                    </div>
-                </div>
-            </section>
+            // Example: Call to a hypothetical backend function that integrates with Suno AI
+            try {
+                // const response = await fetch('/api/generate-suno-music', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //         'api_key': 'YOUR_BASE44_API_KEY' // Base44 API key for backend function
+                //     },
+                //     body: JSON.stringify({ prompt, style, vibe, title })
+                // });
+                // const data = await response.json();
 
-            <section id="console-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Console Matrix TV Vintage</h2>
-                <div class="tv-frame" style="border: 10px solid #333; border-radius: 20px; box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); background: #111; padding: 20px; width: calc(100% - 40px); margin: auto; position: relative; overflow: hidden;">
-                    <div class="tv-screen" id="console" style="background-color: #000; border: 1px solid #00cc00; padding: 15px; height: 400px; overflow-y: scroll; font-size: 1em; box-shadow: inset 0 0 10px #00cc00; position: relative; color: #00ff00; text-shadow: 0 0 5px #00ff00;">
-                        </div>
-                </div>
-            </section>
-        </main>
-    </div>
+                // Simulate API response
+                await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate network delay
+                const generatedAudioUrl = `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${Math.floor(Math.random() * 10) + 1}.mp3`;
+                const newTrackTitle = `${title} (AI Generated)`;
 
-    <script src="script.js"></script>
+                addTrackToUI(newTrackTitle, generatedAudioUrl);
+                generationStatus.textContent = `Music "${newTrackTitle}" generated successfully!`;
+                document.getElementById('prompt').value = '';
+                document.getElementById('style').value = '';
+                document.getElementById('vibe').value = '';
+                document.getElementById('title').value = '';
+
+            } catch (error) {
+                console.error('Error generating music:', error);
+                generationStatus.textContent = 'Error generating music. Please try again.';
+            }
+        });
+
+        // Custom Player Controls
+        playPauseBtn.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseBtn.textContent = 'Pause';
+            } else {
+                audioPlayer.pause();
+                playPauseBtn.textContent = 'Play';
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            playPauseBtn.textContent = 'Play';
+        });
+
+        nextTrackBtn.addEventListener('click', () => {
+            if (tracks.length > 0) {
+                currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+                audioPlayer.src = tracks.audioUrl;
+                audioPlayer.play();
+                playPauseBtn.textContent = 'Pause';
+            }
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            playPauseBtn.textContent = 'Play';
+            // Optionally play next track automatically
+            // nextTrackBtn.click();
+        });
+
+        // Initial state for player
+        audioPlayer.src = tracks.audioUrl;
+    </script>
 </body>
 </html>
