@@ -1,11 +1,12 @@
 // netlify/functions/suno-proxy.js
-const fetch = require('node-fetch');
+const fetch = require('node-fetch'); // [9, 10]
 
 // En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
+    'Access-Control-Allow-Headers': 'Content-Type, User-Agent', // CRITIQUE: User-Agent est inclus
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
 };
 
 exports.handler = async (event, context) => {
@@ -22,18 +23,76 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ message: 'Méthode non autorisée.' }) };
     }
 
-    const SUNO_API_KEY = process.env.SUNO_API_KEY; // [2, 3]
+    const SUNO_API_KEY = process.env.SUNO_API_KEY; // [1, 2]
     if (!SUNO_API_KEY) {
         return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Clé API Suno non configurée sur Netlify.' }) };
     }
 
     const siteUrl = process.env.URL |
 
-| 'https://undergroundstudioapp.netlify.app'; // [3]
-    const callbackUrl = `${siteUrl}/.netlify/functions/suno-callback`; // S_R1, S_R2, S_R3, S_R4, S_R5
+| 'https://undergroundstudioapp.netlify.app'; // [2]
+    const callbackUrl = `${siteUrl}/.netlify/functions/suno-callback`; // S_R4, S_R6, S_R18, S_R20
 
     try {
         const requestBody = JSON.parse(event.body);
+
+        // Logique pour la génération de musique (simplifiée pour le test)
+        const { prompt, model, customMode, instrumental } = requestBody; // S_R19
+
+        // Validation minimale pour le test
+        if (!prompt) {
+            return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ message: 'Le prompt est requis.' }) };
+        }
+
+        const sunoPayload = {
+            prompt,
+            customMode: customMode |
+
+| false, // S_R19
+            instrumental: instrumental |
+
+| false, // S_R19
+            model: model |
+
+| 'V3_5', // S_R19, S_R24, S_R59, S_R60, S_R61
+            callBackUrl: callbackUrl, // L'API Sunoapi.org enverra les résultats ici S_R19, S_R24
+        };
+
+        console.log('Envoi à Suno API:', JSON.stringify(sunoPayload, null, 2));
+
+        const response = await fetch('https://api.sunoapi.org/api/v1/generate', { // S_R19, S_R24, S_R55, S_R56, S_R57
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${SUNO_API_KEY}`, // S_R19, S_R24, S_R69, S_R70, S_R71
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(sunoPayload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error('Erreur Suno API (génération musique):', data);
+            return {
+                statusCode: response.status,
+                headers: corsHeaders, // CRITIQUE : Ajouter ça
+                body: JSON.stringify({ message: data.msg |
+
+| 'Erreur de l\'API Suno', details: data }),
+            };
+        }
+
+        return {
+            statusCode: 200,
+            headers: corsHeaders, // CRITIQUE : Ajouter ça
+            body: JSON.stringify({ taskId: data.data.taskId, message: 'Génération musicale lancée.' }),
+        };
+
+    } catch (error) {
+        console.error('Erreur dans suno-proxy:', error);
+        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Erreur interne du serveur.', error: error.message }) };
+    }
+};
 
         // Logique pour la génération de musique
         if (requestBody.prompt &&!requestBody.lyricsPrompt) { // S_R16
