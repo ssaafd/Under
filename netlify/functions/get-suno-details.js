@@ -1,14 +1,15 @@
 // netlify/functions/get-suno-details.js
 // In a real application, this would query your persistent database.
-// For this example, we're importing the in-memory store from suno-callback.
+// For this example, we're importing the in-memory store from suno-callback.js.
 // This is a hack and will not work reliably across cold starts.
-const { getTaskResult } = require('./suno-callback'); // S_R1, S_R2
+const { getTaskResult } = require('./suno-callback'); //
 
 // En-têtes CORS communs pour toutes les fonctions
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
 };
 
 exports.handler = async (event, context) => {
