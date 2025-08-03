@@ -1,19 +1,19 @@
 // netlify/functions/base44-proxy.js
 const fetch = require('node-fetch');
 
-// En-têtes CORS communs pour toutes les fonctions
+// En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
 };
 
 exports.handler = async (event, context) => {
-    // Gère la requête OPTIONS (preflight) pour CORS
+    // Réponse immédiate pour les requêtes OPTIONS (pré-vérification du navigateur)
     if (event.httpMethod === 'OPTIONS') {
         return {
-            statusCode: 200,
+            statusCode: 204, // Code 204 pour OPTIONS sans contenu
             headers: corsHeaders,
             body: '', // Corps vide pour les requêtes OPTIONS
         };
@@ -24,8 +24,8 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ message: 'Méthode non autorisée. Seules les requêtes GET sont acceptées.' }) };
     }
 
-    const BASE44_APP_ID = process.env.BASE44_APP_ID; // [4, 5]
-    const BASE44_API_KEY = process.env.BASE44_API_KEY; // [6, 7]
+    const BASE44_APP_ID = process.env.BASE44_APP_ID; // [4, 5, 6, 7]
+    const BASE44_API_KEY = process.env.BASE44_API_KEY; // [5, 8, 7]
 
     if (!BASE44_APP_ID ||!BASE44_API_KEY) {
         console.error('Erreur de configuration: Clés API Base44 non définies.');
@@ -40,14 +40,14 @@ exports.handler = async (event, context) => {
     // L'URL de l'API Base44 pour récupérer une entité "Track"
     // Note: Base44.app est une plateforme de création d'applications/gestion d'entités, pas un hébergeur de fichiers audio.
     // L'entité 'Track' et son champ 'audio_url' doivent exister dans votre configuration Base44.
-    const BASE44_API_URL = `https://base44.app/api/apps/${BASE44_APP_ID}/entities/Track/${trackId}`; // [5]
+    const BASE44_API_URL = `https://base44.app/api/apps/${BASE44_APP_ID}/entities/Track/${trackId}`; // [5, 7]
 
     try {
         console.log(`Tentative de récupération de Base44: ${BASE44_API_URL}`);
-        const response = await fetch(BASE44_API_URL, { //
+        const response = await fetch(BASE44_API_URL, { // S_R7, S_R8, [5, 7]
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${BASE44_API_KEY}`, // [6, 7]
+                'Authorization': `Bearer ${BASE44_API_KEY}`, // [8, 7]
                 'Content-Type': 'application/json',
             },
         });
@@ -59,7 +59,7 @@ exports.handler = async (event, context) => {
             console.error('Erreur de l\'API Base44:', data);
             return {
                 statusCode: response.status,
-                headers: corsHeaders,
+                headers: corsHeaders, // CRITIQUE : Ajouter ça
                 body: JSON.stringify({ message: data.message |
 
 | 'Erreur de l\'API Base44', details: data }),
@@ -73,7 +73,7 @@ exports.handler = async (event, context) => {
 
         return {
             statusCode: 200,
-            headers: corsHeaders,
+            headers: corsHeaders, // CRITIQUE : Ajouter ça
             body: JSON.stringify(data), // Renvoie les données complètes de l'entité Base44
         };
 
