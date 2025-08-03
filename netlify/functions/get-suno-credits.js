@@ -1,8 +1,5 @@
-// netlify/functions/get-suno-details.js
-// In a real application, this would query your persistent database.
-// For this example, we're importing the in-memory store from suno-callback.
-// This is a hack and will not work reliably across cold starts.
-const { getTaskResult } = require('./suno-callback'); // S_R1, S_R2
+// netlify/functions/get-suno-credits.js
+const fetch = require('node-fetch');
 
 // En-têtes CORS communs pour toutes les fonctions
 const corsHeaders = {
@@ -25,15 +22,44 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, headers: corsHeaders, body: 'Method Not Allowed' };
     }
 
-    const taskId = event.queryStringParameters.taskId;
-    if (!taskId) {
-        return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ message: 'Task ID is required.' }) };
+    const SUNO_API_KEY = process.env.SUNO_API_KEY; // [4]
+    if (!SUNO_API_KEY) {
+        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Clé API Suno non configurée.' }) };
     }
 
-    // Simule la récupération depuis une base de données.
-    // Dans un scénario réel, vous interrogeriez votre base de données réelle ici.
-    // Exemple: const result = await db.collection('sunoTasks').findOne({ taskId: taskId });
-    const result = getTaskResult(taskId); // Cela ne fonctionnera que si suno-callback a été invoqué récemment et est toujours "chaud".
+    try {
+        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { // S_R11
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${SUNO_API_KEY}`, // S_R22, S_R23, S_R24
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error('Suno Credits API Error:', data);
+            return {
+                statusCode: response.status,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: data.msg |
+
+| 'Erreur de l\'API Suno pour les crédits', details: data }),
+            };
+        }
+
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ creditsRemaining: data.data.creditsRemaining, message: 'Crédits récupérés.' }),
+        };
+
+    } catch (error) {
+        console.error('Erreur dans get-suno-credits:', error);
+        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Erreur interne du serveur.', error: error.message }) };
+    }
+};
 
     if (result) {
         return {
