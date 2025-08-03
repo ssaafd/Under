@@ -22,8 +22,8 @@ const metricAvgTime = document.getElementById('metric-avg-time');
 // --- Gestion du stockage local (pour l'archive et les métriques) ---
 // Nous utilisons localStorage pour une mise en œuvre rapide de l'archive.
 // L'intégration complète avec Base44 pour la persistance sera une étape ultérieure.
-let archive = JSON.parse(localStorage.getItem('musicArchive')) ||;
-let consoleLogHistory = JSON.parse(localStorage.getItem('consoleLogHistory')) ||;
+let archive = JSON.parse(localStorage.getItem('musicArchive')) ||; // S_R33, S_R35, S_R37, S_R39, S_R46
+let consoleLogHistory = JSON.parse(localStorage.getItem('consoleLogHistory')) ||; // S_R33, S_R35, S_R37, S_R39, S_R46
 let metrics = JSON.parse(localStorage.getItem('metrics')) |
 
 | {
@@ -34,15 +34,15 @@ let metrics = JSON.parse(localStorage.getItem('metrics')) |
 };
 
 function saveArchive() {
-    localStorage.setItem('musicArchive', JSON.stringify(archive));
+    localStorage.setItem('musicArchive', JSON.stringify(archive)); // S_R33, S_R35, S_R39, S_R44, S_R46
 }
 
 function saveConsoleLogHistory() {
-    localStorage.setItem('consoleLogHistory', JSON.stringify(consoleLogHistory));
+    localStorage.setItem('consoleLogHistory', JSON.stringify(consoleLogHistory)); // S_R33, S_R35, S_R39, S_R44, S_R46
 }
 
 function saveMetrics() {
-    localStorage.setItem('metrics', JSON.stringify(metrics));
+    localStorage.setItem('metrics', JSON.stringify(metrics)); // S_R33, S_R35, S_R39, S_R44, S_R46
 }
 
 // --- Logique de la Console CRT (avec styles inline) ---
@@ -89,7 +89,7 @@ function renderConsole() {
         timestampSpan.style.color = '#888'; // Gris
         timestampSpan.style.fontSize = '0.9em';
         timestampSpan.style.marginRight = '5px';
-        timestampSpan.textContent = `[${timestamp}]`; // Utilise le timestamp de l'entrée
+        timestampSpan.textContent = `[${entry.timestamp}]`; // Utilise le timestamp de l'entrée
         p.appendChild(timestampSpan);
 
         // Ajout du message (gère les liens si présents)
@@ -99,19 +99,20 @@ function renderConsole() {
 
         consoleEl.appendChild(p);
     });
-    consoleEl.scrollTop = consoleEl.scrollHeight; // Défilement automatique vers le bas
+    consoleEl.scrollTop = consoleEl.scrollHeight; // Défilement automatique vers le bas // S_R45, S_R47
 }
 
 // --- Interaction API (via Fonctions Netlify) ---
-// *** LIGNE CLÉ MODIFIÉE ***
+// *** LIGNE CLÉ MODIFIÉE POUR L'URL FIXE DE NETLIFY ***
 // Utilise l'URL fixe de votre site Netlify où les fonctions sont déployées.
-const NETLIFY_FUNCTIONS_BASE_URL = 'https://undergroundstudioapp.netlify.app/.netlify/functions';
+const NETLIFY_FUNCTIONS_BASE_URL = 'https://undergroundstudioapp.netlify.app/.netlify/functions'; // S_R6
 
 async function callNetlifyFunction(endpoint, method = 'GET', body = null) {
     const options = {
         method: method,
         headers: {
             'Content-Type': 'application/json',
+            // 'User-Agent': 'UndergroundStudioApp/1.0', // Ajouté pour correspondre aux headers CORS du backend
             // Aucune clé API sensible ici, elles sont gérées par les fonctions Netlify
         },
     };
@@ -149,7 +150,7 @@ async function generateMusic() {
     const model = modelSelect.value;
     const negativeTags = negativeTagsInput.value;
 
-    // Validations (basées sur la documentation Sunoapi.org)
+    // Validations (basées sur la documentation Sunoapi.org) // S_R16
     if (!prompt &&!customMode) {
         log("ERREUR: Le prompt est requis en mode non personnalisé.", 'error');
         return;
@@ -162,7 +163,7 @@ async function generateMusic() {
         log("ERREUR: Le style et le titre sont requis en mode personnalisé.", 'error');
         return;
     }
-    // Ajoutez ici des validations de longueur de prompt/style/titre si vous le souhaitez, basées sur S_R8
+    // Ajoutez ici des validations de longueur de prompt/style/titre si vous le souhaitez, basées sur S_R16
 
     log("INIT: Préparation de la génération musicale avec Suno AI...", 'info');
     const startTime = Date.now();
@@ -366,7 +367,7 @@ async function retrieveAndArchiveBase44() {
     }
 }
 
-// --- Gestion de l'Archive (LocalStorage) ---
+// --- Gestion de l'Archive (LocalStorage) --- // S_R33, S_R35, S_R37, S_R39, S_R46
 function updateArchiveDisplay(filter = '') {
     archiveDisplay.innerHTML = '';
     const filteredArchive = archive.filter(item =>
