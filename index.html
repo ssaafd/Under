@@ -3,37 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Underground Studio - Console Admin Pro</title>
+    <title>Générateur Musique Simple</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; font-family: 'VT323', 'Courier New', monospace; background-color: #0a0a0a; color: #00ff00; overflow-x: hidden;">
+<body style="font-family: 'VT323', monospace; background-color: black; color: lime; margin: 20px;">
 
-    <div class="dashboard-container" style="display: flex; min-height: 100vh;">
-        <aside class="sidebar" style="width: 250px; background-color: #1a1a1a; padding: 20px; box-shadow: 2px 0 10px rgba(0, 255, 0, 0.2); display: flex; flex-direction: column; align-items: center;">
-            <div class="logo" style="font-size: 1.8em; font-weight: bold; color: #00cc00; margin-bottom: 30px; text-shadow: 0 0 5px #00cc00;">Underground Studio</div>
-            <nav class="main-nav" style="width: 100%;">
-                <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 15px;"><a href="#generator-section" style="display: block; padding: 10px 15px; color: #00ff00; text-decoration: none; border: 1px solid #00cc00; border-radius: 5px; text-align: center; background-color: #1a1a1a;">Générateur IA</a></li>
-                    <li style="margin-bottom: 15px;"><a href="#archive-section" style="display: block; padding: 10px 15px; color: #00ff00; text-decoration: none; border: 1px solid #00cc00; border-radius: 5px; text-align: center; background-color: #1a1a1a;">Archive Musique</a></li>
-                    <li style="margin-bottom: 15px;"><a href="#metrics-section" style="display: block; padding: 10px 15px; color: #00ff00; text-decoration: none; border: 1px solid #00cc00; border-radius: 5px; text-align: center; background-color: #1a1a1a;">Statistiques API</a></li>
-                    <li style="margin-bottom: 15px;"><a href="#console-section" style="display: block; padding: 10px 15px; color: #00ff00; text-decoration: none; border: 1px solid #00cc00; border-radius: 5px; text-align: center; background-color: #1a1a1a;">Console Matrix</a></li>
-                </ul>
-            </nav>
-        </aside>
+    <h1 style="color: lime;">Générateur Musique Suno AI (Test Simple)</h1>
 
-        <main class="main-content" style="flex-grow: 1; padding: 20px; display: flex; flex-direction: column;">
-            <header class="top-header" style="background-color: #2a2a2a; padding: 15px 20px; margin-bottom: 20px; border-bottom: 2px solid #00cc00; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0, 255, 0, 0.1);">
-                <h1 style="margin: 0; font-size: 1.8em; color: #00ff00;">Tableau de Bord Admin</h1>
-                <div class="user-info" style="display: flex; align-items: center; gap: 15px;">
-                    <span id="credits-display" style="font-size: 1.1em; color: #00cc00;">Crédits: Chargement...</span>
-                    <button onclick="getRemainingCredits()" style="background-color: #00cc00; color: #0a0a0a; border: 1px solid #00cc00; padding: 10px 20px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.1em; text-transform: uppercase; box-shadow: 0 0 8px #00cc00;">Rafraîchir Crédits</button>
-                </div>
-            </header>
+    <div style="margin-bottom: 20px; border: 1px solid lime; padding: 10px;">
+        <h2 style="color: lime;">Générer Musique</h2>
+        <label for="prompt" style="display: block; margin-bottom: 5px;">Prompt (ex: reggae dub King tubby):</label>
+        <textarea id="prompt" rows="4" style="width: 98%; background-color: #333; color: lime; border: 1px solid lime; padding: 5px; margin-bottom: 10px;"></textarea>
+        
+        <button onclick="generateMusic()" style="background-color: lime; color: black; border: 1px solid lime; padding: 8px 15px; cursor: pointer; margin-right: 10px;">Générer Musique</button>
+        <button onclick="getRemainingCredits()" style="background-color: gray; color: lime; border: 1px solid gray; padding: 8px 15px; cursor: pointer;">Rafraîchir Crédits (<span id="credits-display">Chargement...</span>)</button>
+    </div>
 
-            <section id="generator-section" class="content-section" style="background-color: #1a1a1a; padding: 25px; margin-bottom: 20px; border: 1px solid #00cc00; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);">
-                <h2 style="color: #00cc00; margin-top: 0; margin-bottom: 20px; border-bottom: 1px dashed #00cc00; padding-bottom: 10px;">Générateur Musical IA</h2>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="prompt" style="display: block; margin-bottom: 5px; color: #00ff00; font-size: 1.1em;">Prompt / Paroles:</label>
+    <div style="margin-bottom: 20px; border: 1px solid lime; padding: 10px;">
+        <h2 style="color: lime;">Musique Générée</h2>
+        <audio controls id="audio1" style="width: 100%; margin-bottom: 10px;"></audio>
+        <a id="download1" href="" download style="color: cyan; text-decoration: underline;">Télécharger Musique</a>
+    </div>
+
+    <div style="margin-bottom: 20px; border: 1px solid lime; padding: 10px;">
+        <h2 style="color: lime;">Journal de la Console</h2>
+        <div id="console" style="height: 250px; overflow-y: scroll; border: 1px solid lime; background-color: #111; padding: 10px;">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
                     <textarea id="prompt" placeholder="Décrivez votre musique (ex: 'reggae dub King tubby dela tape invasion') ou collez vos paroles." style="width: calc(100% - 22px); padding: 10px; background-color: #0a0a0a; border: 1px solid #00cc00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1em; box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3); min-height: 80px; resize: vertical;"></textarea>
                 </div>
                 <div class="form-group" style="margin-bottom: 15px;">
