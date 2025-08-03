@@ -9,6 +9,7 @@ const corsHeaders = {
     'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
 };
 
 exports.handler = async (event, context) => {
@@ -27,13 +28,13 @@ exports.handler = async (event, context) => {
 
     try {
         const callbackData = JSON.parse(event.body);
-        const taskId = callbackData.data.task_id; // S_R4
+        const taskId = callbackData.data.task_id; //
 
         console.log(`Received Suno Callback for Task ID: ${taskId}`);
         console.log('Callback Data:', JSON.stringify(callbackData, null, 2));
 
         // Stocke le résultat (en mémoire pour cet exemple)
-        taskResults[taskId] = callbackData; // S_R1, S_R2
+        taskResults[taskId] = callbackData; //
 
         // Dans une application réelle, vous mettriez à jour votre base de données ici :
         // Exemple: await db.collection('sunoTasks').updateOne({ taskId: taskId }, { $set: callbackData }, { upsert: true });
