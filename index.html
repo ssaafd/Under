@@ -32,7 +32,7 @@
             overflow-x: hidden; /* Prevent horizontal scroll from animations */
         }
 
-       .studio-rack {
+      .studio-rack {
             display: grid;
             grid-template-columns: 1fr;
             gap: 20px;
@@ -47,7 +47,7 @@
             overflow: hidden; /* For space shuttle animation */
         }
 
-       .panel {
+      .panel {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -57,7 +57,7 @@
             overflow: hidden;
         }
 
-       .panel-header {
+      .panel-header {
             font-family: var(--font-pixel);
             font-size: 1.3em;
             color: var(--accent-color);
@@ -70,16 +70,16 @@
         }
 
         /* Input Form Styling */
-       .generation-form label {
+      .generation-form label {
             display: block;
             margin-bottom: 10px;
             color: var(--text-color);
             font-size: 0.95em;
         }
 
-       .generation-form input[type="text"],
-       .generation-form textarea,
-       .generation-form select {
+      .generation-form input[type="text"],
+      .generation-form textarea,
+      .generation-form select {
             width: calc(100% - 22px);
             padding: 12px;
             margin-bottom: 18px;
@@ -92,12 +92,12 @@
             box-shadow: inset 0 0 5px rgba(255, 0, 0, 0.1);
         }
 
-       .generation-form textarea {
+      .generation-form textarea {
             resize: vertical;
             min-height: 100px;
         }
 
-       .generation-form button {
+      .generation-form button {
             background-color: var(--accent-color);
             color: #000;
             border: none;
@@ -112,14 +112,14 @@
             box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
         }
 
-       .generation-form button:hover {
+      .generation-form button:hover {
             background-color: #ff3333;
             transform: translateY(-3px);
             box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
         }
 
         /* Vintage Red TV Screen */
-       .crt-screen {
+      .crt-screen {
             background: linear-gradient(to top, #000000, #000000, #330000, #330000);
             background-size: 100% 1px;
             animation: scanlines infinite 55s linear;
@@ -137,7 +137,7 @@
             text-shadow: 0 0 10px var(--accent-color);
         }
 
-       .crt-screen::before {
+      .crt-screen::before {
             content: " ";
             display: block;
             position: absolute;
@@ -151,7 +151,7 @@
             background-size: 100% 2px, 3px;
         }
 
-       .crt-screen::after {
+      .crt-screen::after {
             content: " ";
             display: block;
             position: absolute;
@@ -182,11 +182,10 @@
             45% { opacity: 0.84693; }
             50% { opacity: 0.96019; }
             55% { opacity: 0.27861; } /* Ensure loop continuity */
-            /*... more steps for random flicker... */
             100% { opacity: 0.27861; }
         }
 
-       .status-log {
+      .status-log {
             flex-grow: 1;
             overflow-y: auto;
             padding-right: 10px;
@@ -195,14 +194,14 @@
             color: #ff6666; /* Lighter red for log entries */
         }
 
-       .status-log div {
+      .status-log div {
             margin-bottom: 5px;
         }
 
-       .status-log.success { color: #00ff00; text-shadow: 0 0 5px #00ff00; } /* Green for success */
-       .status-log.error { color: #ff0000; text-shadow: 0 0 8px #ff0000; animation: glitch-text 0.5s infinite; } /* Red for error with glitch */
-       .status-log.info { color: #ffcc00; text-shadow: 0 0 5px #ffcc00; } /* Yellow for info */
-       .status-log.pending { color: #00ffff; text-shadow: 0 0 5px #00ffff; } /* Cyan for pending */
+      .status-log.success { color: #00ff00; text-shadow: 0 0 5px #00ff00; } /* Green for success */
+      .status-log.error { color: #ff0000; text-shadow: 0 0 8px #ff0000; animation: glitch-text 0.5s infinite; } /* Red for error with glitch */
+      .status-log.info { color: #ffcc00; text-shadow: 0 0 5px #ffcc00; } /* Yellow for info */
+      .status-log.pending { color: #00ffff; text-shadow: 0 0 5px #00ffff; } /* Cyan for pending */
 
         @keyframes glitch-text {
             0% { transform: translate(0); opacity: 1; }
@@ -214,7 +213,7 @@
         }
 
         /* Red Matrix Control Screen */
-       .matrix-control-screen {
+      .matrix-control-screen {
             background-color: #0d0000; /* Dark background for matrix */
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -225,7 +224,7 @@
             min-height: 300px;
         }
 
-       .matrix-control-screen canvas {
+      .matrix-control-screen canvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -234,7 +233,7 @@
             z-index: 0;
         }
 
-       .matrix-content {
+      .matrix-content {
             position: relative;
             z-index: 1;
             padding: 10px;
@@ -248,18 +247,18 @@
             overflow-y: auto;
         }
 
-       .matrix-content div {
+      .matrix-content div {
             margin-bottom: 5px;
         }
 
         /* Music Player & Archive */
-       .audio-player-container {
+      .audio-player-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-       .audio-player-container audio {
+      .audio-player-container audio {
             width: 100%;
             background-color: var(--input-bg);
             border-radius: 5px;
@@ -267,14 +266,14 @@
             box-shadow: inset 0 0 8px rgba(255, 0, 0, 0.1);
         }
 
-       .custom-controls {
+      .custom-controls {
             display: flex;
             gap: 10px;
             margin-top: 10px;
             justify-content: center;
         }
 
-       .custom-controls button,.track-play-button,.download-button {
+      .custom-controls button,.track-play-button,.download-button {
             background-color: var(--control-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
@@ -288,18 +287,18 @@
             box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
         }
 
-       .custom-controls button:hover,.track-play-button:hover,.download-button:hover {
+      .custom-controls button:hover,.track-play-button:hover,.download-button:hover {
             background-color: #660000;
             box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
         }
 
-       .track-list {
+      .track-list {
             margin-top: 25px;
             border-top: 2px solid var(--border-color);
             padding-top: 20px;
         }
 
-       .track-list-item {
+      .track-list-item {
             display: grid;
             grid-template-columns: 80px 1fr auto auto; /* Cover, Title/Status, Play, Download */
             gap: 15px;
@@ -308,11 +307,11 @@
             border-bottom: 1px dashed var(--border-color);
         }
 
-       .track-list-item:last-child {
+      .track-list-item:last-child {
             border-bottom: none;
         }
 
-       .track-cover {
+      .track-cover {
             width: 80px;
             height: 80px;
             background-color: #333;
@@ -321,40 +320,40 @@
             border: 1px solid var(--border-color);
         }
 
-       .track-info {
+      .track-info {
             display: flex;
             flex-direction: column;
         }
 
-       .track-title {
+      .track-title {
             color: var(--accent-color);
             font-weight: bold;
             font-size: 1.1em;
             margin-bottom: 5px;
         }
 
-       .track-status {
+      .track-status {
             font-size: 0.85em;
             color: #00ffff; /* Cyan for status */
         }
 
-       .track-status.complete { color: #00ff00; }
-       .track-status.error { color: #ff0000; }
+      .track-status.complete { color: #00ff00; }
+      .track-status.error { color: #ff0000; }
 
-       .download-button {
+      .download-button {
             text-decoration: none;
             display: inline-block;
             padding: 8px 15px;
         }
 
         /* Space Shuttle Loading Animation */
-       .space-shuttle-loader {
-            position: absolute;
+      .space-shuttle-loader {
+            position: fixed; /* Use fixed to cover entire viewport */
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -365,12 +364,12 @@
             transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
-       .space-shuttle-loader.active {
+      .space-shuttle-loader.active {
             opacity: 1;
             visibility: visible;
         }
 
-       .shuttle-animation-container {
+      .shuttle-animation-container {
             width: 200px;
             height: 200px;
             position: relative;
@@ -378,7 +377,7 @@
             margin-bottom: 20px;
         }
 
-       .shuttle-animation {
+      .shuttle-animation {
             width: 50px;
             height: 100px;
             background-color: #ccc;
@@ -389,7 +388,7 @@
             animation: launch 3s forwards ease-out;
         }
 
-       .shuttle-animation::before {
+      .shuttle-animation::before {
             content: '';
             position: absolute;
             top: -20px;
@@ -400,7 +399,7 @@
             border-radius: 50% 50% 0 0;
         }
 
-       .shuttle-animation::after {
+      .shuttle-animation::after {
             content: '';
             position: absolute;
             bottom: -30px;
@@ -423,7 +422,7 @@
             100% { transform: translateX(-50%) scaleY(1.5); opacity: 0.7; }
         }
 
-       .loader-text {
+      .loader-text {
             color: var(--text-color);
             font-size: 1.2em;
             font-family: var(--font-pixel);
@@ -432,38 +431,38 @@
 
         /* Responsive adjustments */
         @media (min-width: 768px) {
-           .studio-rack {
+          .studio-rack {
                 grid-template-columns: 1fr 1fr;
             }
-           .generation-panel {
+          .generation-panel {
                 grid-column: span 1;
             }
-           .player-panel {
+          .player-panel {
                 grid-column: span 1;
             }
-           .crt-panel {
+          .crt-panel {
                 grid-column: span 1;
             }
-           .control-panel {
-                grid-column: span 1;
+          .control-panel {
+                grid-column: span 2; /* Full width for control panel on medium screens */
             }
         }
 
         @media (min-width: 1024px) {
-           .studio-rack {
+          .studio-rack {
                 grid-template-columns: 1fr 1fr 1fr; /* Three columns for larger screens */
             }
-           .generation-panel {
+          .generation-panel {
                 grid-column: span 1;
             }
-           .player-panel {
+          .player-panel {
                 grid-column: span 1;
             }
-           .crt-panel {
+          .crt-panel {
                 grid-column: span 1;
             }
-           .control-panel {
-                grid-column: span 3; /* Full width for control panel */
+          .control-panel {
+                grid-column: span 3; /* Full width for control panel on large screens */
             }
         }
     </style>
@@ -500,7 +499,7 @@
             <div class="panel-header">Moniteur de Requêtes</div>
             <div class="crt-screen">
                 <div class="status-log" id="requestStatusLog">
-                    <div> Système en ligne. Attente des commandes...</div>
+                    <div>[00:00:00] Système en ligne. Attente des commandes...</div>
                 </div>
             </div>
         </div>
@@ -527,7 +526,7 @@
             <div class="panel-header">Console de Contrôle Backend</div>
             <canvas id="matrixCanvas"></canvas>
             <div class="matrix-content" id="backendStatusLog">
-                <div> Initialisation des modules backend...</div>
+                <div>[00:00:00] Initialisation des modules backend...</div>
             </div>
         </div>
     </div>
@@ -539,17 +538,9 @@
         <div class="loader-text" id="loaderText">Lancement de la génération...</div>
     </div>
 
+    <script src="backend_simulation.js"></script>
     <script>
-        // Configuration des clés API (à gérer SECUREMENT en production via variables d'environnement ou services de secrets)
-        // Pour cet exemple, elles sont simulées ou laissées en placeholder.
-        const SUNO_API_KEY = 'YOUR_SUNO_OFFICIAL_API_KEY'; // Clé API officielle Suno
-        const BASE44_API_KEY = 'YOUR_BASE44_API_KEY'; // Clé API Base44 pour interagir avec vos entités
-
-        // URL de l'API Suno officielle
-        const SUNO_GENERATE_ENDPOINT = 'https://api.sunoapi.org/api/v1/generate';
-        const SUNO_GET_DETAILS_ENDPOINT = 'https://api.sunoapi.org/api/v1/get-music-generation-details';
-
-        // Éléments du DOM
+        // --- Éléments du DOM ---
         const musicGenerationForm = document.getElementById('musicGenerationForm');
         const audioPlayer = document.getElementById('audioPlayer');
         const generatedTracksList = document.getElementById('generatedTracksList');
@@ -563,10 +554,25 @@
 
         let currentTrackIndex = 0;
         let tracks =; // Tableau pour stocker les données des pistes générées
-        let activeTasks = {}; // Pour suivre les tâches de génération en cours
-        let pollingIntervals = {}; // Pour gérer les intervalles de polling par tâche
 
         // --- Fonctions d'affichage des logs ---
         function logStatus(message, type = 'info', target = requestStatusLog) {
             const timestamp = new Date().toLocaleTimeString();
-            const logEntry = document.createElemen
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            target.prepend(logEntry); // Ajouter en haut
+            if (target.children.length > 50) { // Limiter le nombre de logs
+                target.removeChild(target.lastChild);
+            }
+        }
+
+        function logBackendStatus(message, type = 'info') {
+            logStatus(message, type, backendStatusLog);
+        }
+
+        // --- Gestion de l'animation de la navette spatiale ---
+        function showLoader(message) {
+            loaderText.textContent = message;
+            spaceShuttleLoader.classList.add('active');
+            // Réinitialiser l'a
