@@ -24,8 +24,8 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ message: 'Méthode non autorisée. Seules les requêtes GET sont acceptées.' }) };
     }
 
-    const BASE44_APP_ID = process.env.BASE44_APP_ID; // [3]
-    const BASE44_API_KEY = process.env.BASE44_API_KEY; // [3, 5]
+    const BASE44_APP_ID = process.env.BASE44_APP_ID; // [4, 5]
+    const BASE44_API_KEY = process.env.BASE44_API_KEY; // [6, 7]
 
     if (!BASE44_APP_ID ||!BASE44_API_KEY) {
         console.error('Erreur de configuration: Clés API Base44 non définies.');
@@ -40,11 +40,17 @@ exports.handler = async (event, context) => {
     // L'URL de l'API Base44 pour récupérer une entité "Track"
     // Note: Base44.app est une plateforme de création d'applications/gestion d'entités, pas un hébergeur de fichiers audio.
     // L'entité 'Track' et son champ 'audio_url' doivent exister dans votre configuration Base44.
-    const BASE44_API_URL = `https://base44.app/api/apps/${BASE44_APP_ID}/entities/Track/${trackId}`; // [3]
+    const BASE44_API_URL = `https://base44.app/api/apps/${BASE44_APP_ID}/entities/Track/${trackId}`; // [5]
 
     try {
         console.log(`Tentative de récupération de Base44: ${BASE44_API_URL}`);
-        const response = await fetch[3, 4];
+        const response = await fetch(BASE44_API_URL, { //
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${BASE44_API_KEY}`, // [6, 7]
+                'Content-Type': 'application/json',
+            },
+        });
 
         const data = await response.json();
         console.log('Réponse de Base44 API:', JSON.stringify(data, null, 2));
