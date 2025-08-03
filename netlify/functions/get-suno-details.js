@@ -2,21 +2,21 @@
 // In a real application, this would query your persistent database.
 // For this example, we're importing the in-memory store from suno-callback.js.
 // This is a hack and will not work reliably across cold starts.
-const { getTaskResult } = require('./suno-callback'); //
+const { getTaskResult } = require('./suno-callback'); // S_R1, S_R2, S_R3
 
-// En-têtes CORS communs pour toutes les fonctions
+// En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
 };
 
 exports.handler = async (event, context) => {
-    // Gère la requête OPTIONS (preflight)
+    // Réponse immédiate pour les requêtes OPTIONS (pré-vérification du navigateur)
     if (event.httpMethod === 'OPTIONS') {
         return {
-            statusCode: 200,
+            statusCode: 204, // Code 204 pour OPTIONS sans contenu
             headers: corsHeaders,
             body: '',
         };
@@ -39,13 +39,13 @@ exports.handler = async (event, context) => {
     if (result) {
         return {
             statusCode: 200,
-            headers: corsHeaders,
+            headers: corsHeaders, // CRITIQUE : Ajouter ça
             body: JSON.stringify(result),
         };
     } else {
         return {
             statusCode: 404,
-            headers: corsHeaders,
+            headers: corsHeaders, // CRITIQUE : Ajouter ça
             body: JSON.stringify({ message: 'Task not found or not yet completed.', callbackType: 'pending', msg: 'En cours...' }),
         };
     }
