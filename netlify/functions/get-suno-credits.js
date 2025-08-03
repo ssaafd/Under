@@ -1,19 +1,19 @@
 // netlify/functions/get-suno-credits.js
 const fetch = require('node-fetch');
 
-// En-têtes CORS communs pour toutes les fonctions
+// En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
 };
 
 exports.handler = async (event, context) => {
-    // Gère la requête OPTIONS (preflight)
+    // Réponse immédiate pour les requêtes OPTIONS (pré-vérification du navigateur)
     if (event.httpMethod === 'OPTIONS') {
         return {
-            statusCode: 200,
+            statusCode: 204, // Code 204 pour OPTIONS sans contenu
             headers: corsHeaders,
             body: '',
         };
@@ -29,10 +29,10 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { //
+        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { // S_R28, S_R29, S_R30
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${SUNO_API_KEY}`, //
+                'Authorization': `Bearer ${SUNO_API_KEY}`, // S_R13, S_R16, S_R23, S_R24, S_R25, S_R50, S_R51, S_R52
                 'Content-Type': 'application/json',
             },
         });
@@ -43,7 +43,7 @@ exports.handler = async (event, context) => {
             console.error('Suno Credits API Error:', data);
             return {
                 statusCode: response.status,
-                headers: corsHeaders,
+                headers: corsHeaders, // CRITIQUE : Ajouter ça
                 body: JSON.stringify({ message: data.msg |
 
 | 'Erreur de l\'API Suno pour les crédits', details: data }),
@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
 
         return {
             statusCode: 200,
-            headers: corsHeaders,
+            headers: corsHeaders, // CRITIQUE : Ajouter ça
             body: JSON.stringify({ creditsRemaining: data.data.creditsRemaining, message: 'Crédits récupérés.' }),
         };
 
