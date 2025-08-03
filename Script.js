@@ -1,42 +1,418 @@
-// netlify/functions/suno-callback.js
-// This is a simplified in-memory store for demonstration.
-// In a real application, you would use a persistent database (e.g., FaunaDB, Supabase, MongoDB Atlas).
-const taskResults = {}; // This will NOT persist across cold starts of the function.
+const consoleEl = document.getElementById('console');
+const promptInput = document.getElementById('prompt');
+const styleInput = document.getElementById('style');
+const titleInput = document.getElementById('title');
+const customModeCheckbox = document.getElementById('customMode');
+const instrumentalCheckbox = document.getElementById('instrumental');
+const modelSelect = document.getElementById('model');
+const negativeTagsInput = document.getElementById('negativeTags');
+const audio1 = document.getElementById('audio1');
+const download1 = document.getElementById('download1');
+const audio2 = document.getElementById('audio2');
+const download2 = document.getElementById('download2');
+const base44TrackIdInput = document.getElementById('base44TrackId');
+const archiveDisplay = document.getElementById('archiveDisplay');
+const archiveSearchInput = document.getElementById('archiveSearch');
+const creditsDisplay = document.getElementById('credits-display');
+const metricCredits = document.getElementById('metric-credits');
+const metricSuccessTasks = document.getElementById('metric-success-tasks');
+const metricFailedTasks = document.getElementById('metric-failed-tasks');
+const metricAvgTime = document.getElementById('metric-avg-time');
 
-exports.handler = async (event, context) => {
-    if (event.httpMethod!== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
+// --- Gestion du stockage local (pour l'archive et les métriques) ---
+// Nous utilisons localStorage pour une mise en œuvre rapide de l'archive.
+// L'intégration complète avec Base44 pour la persistance sera une étape ultérieure.
+let archive = JSON.parse(localStorage.getItem('musicArchive')) ||;
+let consoleLogHistory = JSON.parse(localStorage.getItem('consoleLogHistory')) ||;
+let metrics = JSON.parse(localStorage.getItem('metrics')) |
+
+| {
+    successTasks: 0,
+    failedTasks: 0,
+    totalGenerationTime: 0,
+    generationCount: 0
+};
+
+function saveArchive() {
+    localStorage.setItem('musicArchive', JSON.stringify(archive));
+}
+
+function saveConsoleLogHistory() {
+    localStorage.setItem('consoleLogHistory', JSON.stringify(consoleLogHistory));
+}
+
+function saveMetrics() {
+    localStorage.setItem('metrics', JSON.stringify(metrics));
+}
+
+// --- Logique de la Console CRT ---
+function log(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = { timestamp, message, type };
+    consoleLogHistory.push(logEntry);
+    if (consoleLogHistory.length > 200) { // Garde l'historique de la console gérable
+        consoleLogHistory.shift();
+    }
+    renderConsole();
+    saveConsoleLogHistory();
+}
+
+function renderConsole() {
+    consoleEl.innerHTML = '';
+    consoleLogHistory.forEach(entry => {
+        const p = document.createElement('p');
+        p.className = `console-log ${entry.type}`;
+        p.innerHTML = `<span class="timestamp">[${entry.timestamp}]</span> ${entry.message}`;
+        consoleEl.appendChild(p);
+    });
+    consoleEl.scrollTop = consoleEl.scrollHeight; // Défilement automatique vers le bas
+}
+
+// --- Interaction API (via Fonctions Netlify) ---
+// Utilise window.location.origin pour construire l'URL de base des fonctions Netlify
+const NETLIFY_FUNCTIONS_BASE_URL = `${window.location.origin}/.netlify/functions`;
+
+async function callNetlifyFunction(endpoint, method = 'GET', body = null) {
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            // Aucune clé API sensible ici, elles sont gérées par les fonctions Netlify
+        },
+    };
+    if (body) {
+        options.body = JSON.stringify(body);
     }
 
     try {
-        const callbackData = JSON.parse(event.body);
-        const taskId = callbackData.data.task_id;
+        log(`REQUÊTE: ${method} à ${NETLIFY_FUNCTIONS_BASE_URL}/${endpoint}`, 'info');
+        const response = await fetch(`${NETLIFY_FUNCTIONS_BASE_URL}/${endpoint}`, options);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            log(`ERREUR FONCTION NETLIFY (${response.status}): ${errorData.message |
 
-        console.log(`Received Suno Callback for Task ID: ${taskId}`);
-        console.log('Callback Data:', JSON.stringify(callbackData, null, 2));
+| response.statusText}`, 'error');
+            throw new Error(`Erreur API (${response.status}): ${errorData.message |
 
-        // Store the result (in-memory for this example)
-        taskResults[taskId] = callbackData;
-
-        // In a real app, you'd update your database here:
-        // await db.collection('sunoTasks').updateOne({ taskId: taskId }, { $set: callbackData }, { upsert: true });
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ status: 'received', message: 'Callback processed' }),
-        };
+| response.statusText}`);
+        }
+        log(`RÉPONSE: Statut ${response.status} de ${NETLIFY_FUNCTIONS_BASE_URL}/${endpoint}`, 'info');
+        return await response.json();
     } catch (error) {
-        console.error('Error processing Suno callback:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ status: 'error', message: 'Failed to process callback', error: error.message }),
-        };
+        log(`ERREUR RÉSEAU/FONCTION: ${error.message}`, 'error');
+        throw error; // Re-throw pour être capturé par la fonction appelante
     }
-};
+}
 
-// This function is for internal use by get-suno-details.js to retrieve results.
-// It's a hack for demonstration purposes without a real DB.
-// In a real app, get-suno-details would query the persistent DB.
-exports.getTaskResult = (taskId) => {
-    return taskResults[taskId];
-};
+async function generateMusic() {
+    const prompt = promptInput.value;
+    const style = styleInput.value;
+    const title = titleInput.value;
+    const customMode = customModeCheckbox.checked;
+    const instrumental = instrumentalCheckbox.checked;
+    const model = modelSelect.value;
+    const negativeTags = negativeTagsInput.value;
+
+    // Validations (basées sur la documentation Sunoapi.org)
+    if (!prompt &&!customMode) {
+        log("ERREUR: Le prompt est requis en mode non personnalisé.", 'error');
+        return;
+    }
+    if (customMode &&!instrumental &&!prompt) {
+        log("ERREUR: Le prompt est requis en mode personnalisé si non instrumental.", 'error');
+        return;
+    }
+    if (customMode && (!style ||!title)) {
+        log("ERREUR: Le style et le titre sont requis en mode personnalisé.", 'error');
+        return;
+    }
+    // Ajoutez ici des validations de longueur de prompt/style/titre si vous le souhaitez, basées sur
+
+    log("INIT: Préparation de la génération musicale avec Suno AI...", 'info');
+    const startTime = Date.now();
+
+    try {
+        // Appel à la fonction Netlify 'suno-proxy'
+        const data = await callNetlifyFunction('suno-proxy', 'POST', {
+            prompt, style, title, customMode, instrumental, model, negativeTags,
+            // callBackUrl est défini par la fonction Netlify elle-même pour des raisons de sécurité
+        });
+
+        log(`SUCCÈS: Tâche de génération lancée. ID de tâche: ${data.taskId}.`, 'success');
+        log(`INFO: La musique sera disponible via le callback. Sondage en cours...`, 'info');
+
+        // Nous allons sonder les résultats via get-suno-details
+        pollForMusicResults(data.taskId, prompt, startTime);
+
+    } catch (error) {
+        log(`ÉCHEC GÉNÉRATION MUSIQUE: ${error.message}`, 'error');
+        metrics.failedTasks++;
+        saveMetrics();
+        updateMetricsDisplay();
+    }
+}
+
+async function pollForMusicResults(taskId, originalPrompt, startTime) {
+    log(`DÉBUT DU SONDAGE pour la tâche ${taskId}...`, 'info');
+    let attempts = 0;
+    const maxAttempts = 60; // Sonde pendant 10 minutes max (60 * 10 secondes)
+    const pollInterval = 10000; // 10 secondes
+
+    const intervalId = setInterval(async () => {
+        attempts++;
+        if (attempts > maxAttempts) {
+            clearInterval(intervalId);
+            log(`SONDAGE TERMINÉ: La tâche ${taskId} n'a pas été complétée dans le temps imparti.`, 'warning');
+            metrics.failedTasks++;
+            saveMetrics();
+            updateMetricsDisplay();
+            return;
+        }
+
+        log(`SONDAGE: Vérification du statut de la tâche ${taskId} (Tentative ${attempts}/${maxAttempts})...`, 'info');
+        try {
+            // Appel à la fonction Netlify 'get-suno-details'
+            const result = await callNetlifyFunction(`get-suno-details?taskId=${taskId}`);
+
+            if (result && result.data && result.data.callbackType === 'complete') {
+                clearInterval(intervalId);
+                const endTime = Date.now();
+                const duration = ((endTime - startTime) / 1000).toFixed(2);
+                log(`SUCCÈS: Musique générée pour la tâche ${taskId} en ${duration} secondes.`, 'success');
+
+                const musicData = result.data.data; // Tableau de 2 musiques
+                if (musicData && musicData.length > 0) {
+                    // Musique 1
+                    audio1.src = musicData.audio_url |
+
+| '';
+                    download1.href = musicData.audio_url |
+
+| '';
+                    download1.download = `music_1_${musicData.id}.mp3`;
+                    log(`LIEN MUSIQUE 1: <a href="${musicData.audio_url}" target="_blank">${musicData.audio_url}</a>`, 'success');
+                    log(`COMMENTAIRE TEXTURE 1: Modèle: ${musicData.model_name}, Titre: "${musicData.title}", Tags: "${musicData.tags}"`, 'info');
+
+                    // Musique 2 (si disponible)
+                    if (musicData.length > 1) {
+                        audio2.src = musicData.[1]audio_url |
+
+| '';
+                        download2.href = musicData.[1]audio_url |
+
+| '';
+                        download2.download = `music_2_${musicData.[1]id}.mp3`;
+                        log(`LIEN MUSIQUE 2: <a href="${musicData.[1]audio_url}" target="_blank">${musicData.[1]audio_url}</a>`, 'success');
+                        log(`COMMENTAIRE TEXTURE 2: Modèle: ${musicData.[1]model_name}, Titre: "${musicData.[1]title}", Tags: "${musicData.[1]tags}"`, 'info');
+                    }
+
+                    // Ajout à l'archive locale
+                    musicData.forEach(music => {
+                        archive.push({
+                            id: music.id,
+                            url: music.audio_url,
+                            prompt: music.prompt,
+                            title: music.title,
+                            model: music.model_name,
+                            tags: music.tags,
+                            duration: music.duration,
+                            type: 'suno_generated'
+                        });
+                    });
+                    saveArchive();
+                    updateArchiveDisplay();
+                }
+
+                metrics.successTasks++;
+                metrics.totalGenerationTime += parseFloat(duration);
+                metrics.generationCount++;
+                updateMetricsDisplay();
+                saveMetrics();
+
+            } else if (result && result.data && result.data.callbackType === 'error') {
+                clearInterval(intervalId);
+                log(`ÉCHEC GÉNÉRATION MUSIQUE pour la tâche ${taskId}: ${result.msg}`, 'error');
+                metrics.failedTasks++;
+                saveMetrics();
+                updateMetricsDisplay();
+            } else {
+                log(`STATUT TÂCHE ${taskId}: ${result.msg |
+
+| 'En cours...'}`, 'info');
+            }
+        } catch (error) {
+            clearInterval(intervalId);
+            log(`ERREUR LORS DU SONDAGE pour la tâche ${taskId}: ${error.message}`, 'error');
+            metrics.failedTasks++;
+            saveMetrics();
+            updateMetricsDisplay();
+        }
+    }, pollInterval);
+}
+
+
+async function generateLyrics() {
+    const prompt = promptInput.value;
+    if (!prompt) {
+        log("ERREUR: Le prompt est requis pour la génération de paroles.", 'error');
+        return;
+    }
+
+    log("INIT: Génération de paroles avec Suno AI...", 'info');
+    try {
+        // Appel à la fonction Netlify 'suno-proxy' pour les paroles
+        const data = await callNetlifyFunction('suno-proxy', 'POST', {
+            lyricsPrompt: prompt, // Utilise un champ différent pour indiquer une requête de paroles
+        });
+        log(`SUCCÈS: Tâche de génération de paroles lancée. ID de tâche: ${data.taskId}.`, 'success');
+        
+        if (data.lyrics) { // Si la fonction proxy renvoie les paroles directement
+            log(`PAROLES GÉNÉRÉES: <pre>${data.lyrics}</pre>`, 'success');
+            promptInput.value = data.lyrics; // Optionnel: met les paroles générées dans le champ prompt
+        } else {
+            log(`INFO: Les paroles seront disponibles via le callback. Vous pouvez aussi interroger le statut avec l'ID de tâche.`, 'info');
+            // Si l'API paroles est asynchrone, vous devrez implémenter un sondage similaire à celui de la musique.
+        }
+    } catch (error) {
+        log(`ÉCHEC GÉNÉRATION PAROLES: ${error.message}`, 'error');
+        metrics.failedTasks++;
+        saveMetrics();
+        updateMetricsDisplay();
+    }
+}
+
+async function getRemainingCredits() {
+    log("INIT: Récupération des crédits Suno AI...", 'info');
+    try {
+        // Appel à la fonction Netlify 'get-suno-credits'
+        const data = await callNetlifyFunction('get-suno-credits');
+        creditsDisplay.textContent = `Crédits: ${data.creditsRemaining}`;
+        metricCredits.textContent = data.creditsRemaining;
+        log(`SUCCÈS: Crédits restants: ${data.creditsRemaining}.`, 'success');
+    } catch (error) {
+        log(`ÉCHEC RÉCUPÉRATION CRÉDITS: ${error.message}`, 'error');
+    }
+}
+
+async function retrieveAndArchiveBase44() {
+    const trackId = base44TrackIdInput.value;
+    if (!trackId) {
+        log("ERREUR: L'ID de piste Base44 est requis.", 'error');
+        return;
+    }
+
+    log(`INIT: Récupération de la piste ${trackId} depuis Base44...`, 'info');
+    try {
+        // Appel à la fonction Netlify 'base44-proxy'
+        const data = await callNetlifyFunction(`base44-proxy?trackId=${trackId}`);
+        log(`SUCCÈS: Piste ${trackId} récupérée de Base44.`, 'success');
+
+        if (data.audio_url) {
+            archive.push({
+                id: trackId,
+                url: data.audio_url,
+                prompt: data.prompt |
+
+| 'Récupéré de Base44',
+                title: data.title |
+
+| `Piste Base44 ${trackId}`,
+                type: 'base44'
+            });
+            saveArchive();
+            updateArchiveDisplay();
+            log(`ARCHIVE: Piste ${trackId} ajoutée à l'archive.`, 'success');
+        } else {
+            log(`AVERTISSEMENT: Aucune URL audio trouvée pour la piste ${trackId} de Base44.`, 'warning');
+        }
+    } catch (error) {
+        log(`ÉCHEC RÉCUPÉRATION BASE44: ${error.message}`, 'error');
+    }
+}
+
+// --- Gestion de l'Archive (LocalStorage) ---
+function updateArchiveDisplay(filter = '') {
+    archiveDisplay.innerHTML = '';
+    const filteredArchive = archive.filter(item =>
+        (item.prompt && item.prompt.toLowerCase().includes(filter.toLowerCase())) ||
+        (item.title && item.title.toLowerCase().includes(filter.toLowerCase())) ||
+        (item.id && item.id.toLowerCase().includes(filter.toLowerCase()))
+    );
+
+    if (filteredArchive.length === 0 && filter) {
+        archiveDisplay.innerHTML = '<p>Aucun résultat trouvé pour votre recherche.</p>';
+        return;
+    } else if (filteredArchive.length === 0) {
+        archiveDisplay.innerHTML = '<p>L\'archive est vide. Générez ou récupérez de la musique!</p>';
+        return;
+    }
+
+    filteredArchive.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'archive-item';
+        div.innerHTML = `
+            <strong>${item.title |
+
+| 'Titre Inconnu'}</strong> (ID: ${item.id})<br>
+            Prompt: ${item.prompt}<br>
+            ${item.model? `Modèle: ${item.model}<br>` : ''}
+            ${item.duration? `Durée: ${item.duration.toFixed(2)}s<br>` : ''}
+            <audio controls src="${item.url}"></audio>
+            <a href="${item.url}" download="${item.title |
+
+| 'track'}_${item.id}.mp3" class="download-link">Télécharger</a>
+        `;
+        archiveDisplay.appendChild(div);
+    });
+}
+
+function clearArchive() {
+    if (confirm("Êtes-vous sûr de vouloir effacer toute l'archive? Cette action est irréversible.")) {
+        archive =;
+        saveArchive();
+        updateArchiveDisplay();
+        log("ARCHIVE: Toute l'archive a été effacée.", 'warning');
+    }
+}
+
+function searchArchive() {
+    const filter = archiveSearchInput.value;
+    updateArchiveDisplay(filter);
+    log(`ARCHIVE: Recherche effectuée pour "${filter}".`, 'info');
+}
+
+// --- Affichage des Métriques ---
+function updateMetricsDisplay() {
+    metricSuccessTasks.textContent = metrics.successTasks;
+    metricFailedTasks.textContent = metrics.failedTasks;
+    if (metrics.generationCount > 0) {
+        metricAvgTime.textContent = `${(metrics.totalGenerationTime / metrics.generationCount).toFixed(2)}s`;
+    } else {
+        metricAvgTime.textContent = 'N/A';
+    }
+    saveMetrics(); // Sauvegarde les métriques à chaque mise à jour
+}
+
+// --- Chargement Initial ---
+document.addEventListener('DOMContentLoaded', () => {
+    renderConsole();
+    updateArchiveDisplay();
+    updateMetricsDisplay();
+    getRemainingCredits(); // Récupère les crédits au chargement
+    log("CONSOLE: Système d'administration démarré. Bienvenue!", 'info');
+});
+
+// --- Écouteurs d'événements pour les éléments de l'interface utilisateur ---
+customModeCheckbox.addEventListener('change', () => {
+    const isCustom = customModeCheckbox.checked;
+    styleInput.disabled =!isCustom;
+    titleInput.disabled =!isCustom;
+    if (!isCustom) {
+        styleInput.value = '';
+        titleInput.value = '';
+    }
+});
+
+// État initial pour les champs du mode personnalisé
+customModeCheckbox.dispatchEvent(new Event('change'));
