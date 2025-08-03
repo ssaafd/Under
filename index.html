@@ -32,9 +32,549 @@
             overflow-x: hidden; /* Prevent horizontal scroll from animations */
         }
 
-      .studio-rack {
+       .studio-rack {
             display: grid;
             grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            background-color: var(--rack-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden; /* For space shuttle animation */
+        }
+
+       .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+       .panel-header {
+            font-family: var(--font-pixel);
+            font-size: 1.3em;
+            color: var(--accent-color);
+            margin-bottom: 18px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            text-shadow: 0 0 8px var(--accent-color);
+        }
+
+        /* Input Form Styling */
+       .generation-form label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-color);
+            font-size: 0.95em;
+        }
+
+       .generation-form input[type="text"],
+       .generation-form textarea,
+       .generation-form select {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-family: var(--font-mono);
+            font-size: 1em;
+            box-shadow: inset 0 0 5px rgba(255, 0, 0, 0.1);
+        }
+
+       .generation-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+       .generation-form button {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        }
+
+       .generation-form button:hover {
+            background-color: #ff3333;
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+        }
+
+        /* Vintage Red TV Screen */
+       .crt-screen {
+            background: linear-gradient(to top, #000000, #000000, #330000, #330000);
+            background-size: 100% 1px;
+            animation: scanlines infinite 55s linear;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px; /* Rounded edges like old TVs */
+            filter: blur(0.8px); /* Subtle blur for CRT effect */
+            padding: 20px;
+            box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.5), 0 0 30px rgba(255, 0, 0, 0.4);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font-pixel);
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-color);
+        }
+
+       .crt-screen::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 0, 0, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px;
+        }
+
+       .crt-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: rgba(18, 16, 16, 0.1);
+            z-index: 2;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes scanlines {
+            from { background-position: 0 0; }
+            to { background-position: 0 -10px; }
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.27861; }
+            5% { opacity: 0.34769; }
+            10% { opacity: 0.23604; }
+            15% { opacity: 0.90626; }
+            20% { opacity: 0.18128; }
+            25% { opacity: 0.83891; }
+            30% { opacity: 0.65583; }
+            35% { opacity: 0.67807; }
+            40% { opacity: 0.26559; }
+            45% { opacity: 0.84693; }
+            50% { opacity: 0.96019; }
+            55% { opacity: 0.27861; } /* Ensure loop continuity */
+            100% { opacity: 0.27861; }
+        }
+
+       .status-log {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            font-size: 0.85em;
+            line-height: 1.4;
+            color: #ff6666; /* Lighter red for log entries */
+        }
+
+       .status-log div {
+            margin-bottom: 5px;
+        }
+
+       .status-log.success { color: #00ff00; text-shadow: 0 0 5px #00ff00; } /* Green for success */
+       .status-log.error { color: #ff0000; text-shadow: 0 0 8px #ff0000; animation: glitch-text 0.5s infinite; } /* Red for error with glitch */
+       .status-log.info { color: #ffcc00; text-shadow: 0 0 5px #ffcc00; } /* Yellow for info */
+       .status-log.pending { color: #00ffff; text-shadow: 0 0 5px #00ffff; } /* Cyan for pending */
+
+        @keyframes glitch-text {
+            0% { transform: translate(0); opacity: 1; }
+            20% { transform: translate(-2px, 2px); opacity: 0.8; }
+            40% { transform: translate(-2px, -2px); opacity: 1; }
+            60% { transform: translate(2px, 2px); opacity: 0.8; }
+            80% { transform: translate(2px, -2px); opacity: 1; }
+            100% { transform: translate(0); opacity: 1; }
+        }
+
+        /* Red Matrix Control Screen */
+       .matrix-control-screen {
+            background-color: #0d0000; /* Dark background for matrix */
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+        }
+
+       .matrix-control-screen canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+       .matrix-content {
+            position: relative;
+            z-index: 1;
+            padding: 10px;
+            font-family: var(--font-mono);
+            color: #ff6666; /* Lighter red for matrix text */
+            font-size: 0.9em;
+            line-height: 1.5;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay for readability */
+            border-radius: 5px;
+            height: calc(100% - 20px); /* Adjust for padding */
+            overflow-y: auto;
+        }
+
+       .matrix-content div {
+            margin-bottom: 5px;
+        }
+
+        /* Music Player & Archive */
+       .audio-player-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+       .audio-player-container audio {
+            width: 100%;
+            background-color: var(--input-bg);
+            border-radius: 5px;
+            outline: none;
+            box-shadow: inset 0 0 8px rgba(255, 0, 0, 0.1);
+        }
+
+       .custom-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+       .custom-controls button,.track-play-button,.download-button {
+            background-color: var(--control-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+        }
+
+       .custom-controls button:hover,.track-play-button:hover,.download-button:hover {
+            background-color: #660000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+        }
+
+       .track-list {
+            margin-top: 25px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+       .track-list-item {
+            display: grid;
+            grid-template-columns: 80px 1fr auto auto; /* Cover, Title/Status, Play, Download */
+            gap: 15px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+       .track-list-item:last-child {
+            border-bottom: none;
+        }
+
+       .track-cover {
+            width: 80px;
+            height: 80px;
+            background-color: #333;
+            border-radius: 5px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+       .track-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+       .track-title {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+       .track-status {
+            font-size: 0.85em;
+            color: #00ffff; /* Cyan for status */
+        }
+
+       .track-status.complete { color: #00ff00; }
+       .track-status.error { color: #ff0000; }
+
+       .download-button {
+            text-decoration: none;
+            display: inline-block;
+            padding: 8px 15px;
+        }
+
+        /* Space Shuttle Loading Animation */
+       .space-shuttle-loader {
+            position: fixed; /* Use fixed to cover entire viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+       .space-shuttle-loader.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+       .shuttle-animation-container {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+       .shuttle-animation {
+            width: 50px;
+            height: 100px;
+            background-color: #ccc;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: launch 3s forwards ease-out;
+        }
+
+       .shuttle-animation::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-color: #aaa;
+            border-radius: 50% 50% 0 0;
+        }
+
+       .shuttle-animation::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 40px;
+            background-color: orange;
+            border-radius: 50%;
+            animation: exhaust 0.5s infinite alternate;
+        }
+
+        @keyframes launch {
+            0% { bottom: 0; }
+            100% { bottom: 150%; }
+        }
+
+        @keyframes exhaust {
+            0% { transform: translateX(-50%) scaleY(1); opacity: 1; }
+            100% { transform: translateX(-50%) scaleY(1.5); opacity: 0.7; }
+        }
+
+       .loader-text {
+            color: var(--text-color);
+            font-size: 1.2em;
+            font-family: var(--font-pixel);
+            text-shadow: 0 0 10px var(--accent-color);
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+           .studio-rack {
+                grid-template-columns: 1fr 1fr;
+            }
+           .generation-panel {
+                grid-column: span 1;
+            }
+           .player-panel {
+                grid-column: span 1;
+            }
+           .crt-panel {
+                grid-column: span 1;
+            }
+           .control-panel {
+                grid-column: span 2; /* Full width for control panel on medium screens */
+            }
+        }
+
+        @media (min-width: 1024px) {
+           .studio-rack {
+                grid-template-columns: 1fr 1fr 1fr; /* Three columns for larger screens */
+            }
+           .generation-panel {
+                grid-column: span 1;
+            }
+           .player-panel {
+                grid-column: span 1;
+            }
+           .crt-panel {
+                grid-column: span 1;
+            }
+           .control-panel {
+                grid-column: span 3; /* Full width for control panel on large screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="studio-rack">
+        <div class="panel generation-panel">
+            <div class="panel-header">Générateur Musical AI</div>
+            <form class="generation-form" id="musicGenerationForm">
+                <label for="prompt">Prompt (Décrivez votre musique):</label>
+                <textarea id="prompt" placeholder="Ex: 'Un morceau de piano calme et relaxant avec des mélodies douces, parfait pour la méditation.'" required></textarea>
+
+                <label for="style">Style/Genre:</label>
+                <input type="text" id="style" placeholder="Ex: 'Classique', 'Jazz', 'Pop', 'Electronic Dance'" required>
+
+                <label for="vibe">Vibe/Ambiance:</label>
+                <input type="text" id="vibe" placeholder="Ex: 'Énergique', 'Mélancolique', 'Paisible', 'Tendu'">
+
+                <label for="title">Titre (Max 80 caractères):</label>
+                <input type="text" id="title" maxlength="80" placeholder="Ex: 'Méditation au Coucher du Soleil'" required>
+
+                <label for="model">Modèle AI:</label>
+                <select id="model">
+                    <option value="V4_5">V4.5 (Avancé, jusqu'à 8 min)</option>
+                    <option value="V4">V4 (Haute Qualité, jusqu'à 4 min)</option>
+                    <option value="V3_5">V3.5 (Équilibré, jusqu'à 4 min)</option>
+                </select>
+
+                <button type="submit">Générer Musique</button>
+            </form>
+        </div>
+
+        <div class="panel crt-panel">
+            <div class="panel-header">Moniteur de Requêtes</div>
+            <div class="crt-screen">
+                <div class="status-log" id="requestStatusLog">
+                    <div>[00:00:00] Système en ligne. Attente des commandes...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel player-panel">
+            <div class="panel-header">Lecture & Archive Musicale</div>
+            <div class="audio-player-container">
+                <audio id="audioPlayer" controls></audio>
+                <div class="custom-controls">
+                    <button id="playPauseBtn">Lecture / Pause</button>
+                    <button id="stopBtn">Stop</button>
+                    <button id="nextTrackBtn">Piste Suivante</button>
+                </div>
+            </div>
+
+            <div class="track-list">
+                <div class="panel-header" style="margin-top: 20px; border-top: none; padding-top: 0;">Pistes Générées</div>
+                <div id="generatedTracksList">
+                    </div>
+            </div>
+        </div>
+
+        <div class="panel control-panel">
+            <div class="panel-header">Console de Contrôle Backend</div>
+            <canvas id="matrixCanvas"></canvas>
+            <div class="matrix-content" id="backendStatusLog">
+                <div>[00:00:00] Initialisation des modules backend...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-shuttle-loader" id="spaceShuttleLoader">
+        <div class="shuttle-animation-container">
+            <div class="shuttle-animation"></div>
+        </div>
+        <div class="loader-text" id="loaderText">Lancement de la génération...</div>
+    </div>
+
+    <script>
+        // --- Éléments du DOM ---
+        const musicGenerationForm = document.getElementById('musicGenerationForm');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const generatedTracksList = document.getElementById('generatedTracksList');
+        const requestStatusLog = document.getElementById('requestStatusLog');
+        const backendStatusLog = document.getElementById('backendStatusLog');
+        const spaceShuttleLoader = document.getElementById('spaceShuttleLoader');
+        const loaderText = document.getElementById('loaderText');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const nextTrackBtn = document.getElementById('nextTrackBtn');
+
+        let currentTrackIndex = 0;
+        let tracks =; // Tableau pour stocker les données des pistes générées
+
+        // --- Fonctions d'affichage des logs ---
+        function logStatus(message, type = 'info', target = requestStatusLog) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            target.prepend(logEntry); // Ajouter en haut
+            if (target.children.length > 50) { // Limiter le nombre de logs
+                target.removeChild(target.lastChild);
+            }
+        }
+
+        function logBackendStatus(message, type = 'info') {
+            logStatus(message, type, backendStatusLog);
+        }
+
+        // --- Gestion de l'animation de la navette spatiale ---
+        function showLoader(message) {
+            loaderText.textContent = message;
+            spaceShuttleLoader.classList.add('active');
+            // Réinitialise            grid-template-columns: 1fr;
             gap: 20px;
             width: 100%;
             max-width: 1200px;
