@@ -1,5 +1,5 @@
 // netlify/functions/get-suno-credits.js
-const fetch = require('node-fetch');
+const fetch = require('node-fetch'); // [9, 10]
 
 // En-têtes CORS obligatoires (selon votre diagnostic)
 const corsHeaders = {
@@ -23,16 +23,16 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, headers: corsHeaders, body: 'Method Not Allowed' };
     }
 
-    const SUNO_API_KEY = process.env.SUNO_API_KEY; // [2, 3]
+    const SUNO_API_KEY = process.env.SUNO_API_KEY; // [1, 2]
     if (!SUNO_API_KEY) {
         return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Clé API Suno non configurée.' }) };
     }
 
     try {
-        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { // S_R28, S_R29, S_R30
+        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { // S_R19, S_R24, S_R55, S_R56, S_R57
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${SUNO_API_KEY}`, // S_R13, S_R16, S_R23, S_R24, S_R25, S_R50, S_R51, S_R52
+                'Authorization': `Bearer ${SUNO_API_KEY}`, // S_R19, S_R24, S_R69, S_R70, S_R71
                 'Content-Type': 'application/json',
             },
         });
