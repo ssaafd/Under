@@ -6,6 +6,7 @@ const corsHeaders = {
     'Access-Control-Allow-Origin': '*', // Permet à toutes les origines (pour le développement)
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400', // Cache les résultats preflight pendant 24 heures
 };
 
 exports.handler = async (event, context) => {
@@ -22,16 +23,16 @@ exports.handler = async (event, context) => {
         return { statusCode: 405, headers: corsHeaders, body: 'Method Not Allowed' };
     }
 
-    const SUNO_API_KEY = process.env.SUNO_API_KEY; // [4]
+    const SUNO_API_KEY = process.env.SUNO_API_KEY; // [2, 3]
     if (!SUNO_API_KEY) {
         return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Clé API Suno non configurée.' }) };
     }
 
     try {
-        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { // S_R11
+        const response = await fetch('https://api.sunoapi.org/api/v1/credits', { //
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${SUNO_API_KEY}`, // S_R22, S_R23, S_R24
+                'Authorization': `Bearer ${SUNO_API_KEY}`, //
                 'Content-Type': 'application/json',
             },
         });
@@ -58,28 +59,5 @@ exports.handler = async (event, context) => {
     } catch (error) {
         console.error('Erreur dans get-suno-credits:', error);
         return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ message: 'Erreur interne du serveur.', error: error.message }) };
-    }
-};
-
-    if (result) {
-        return {
-            statusCode: 200,
-            headers: corsHeaders,
-            body: JSON.stringify(result),
-        };
-    } else {
-        return {
-            statusCode: 404,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Task not found or not yet completed.', callbackType: 'pending', msg: 'En cours...' }),
-        };
-    }
-};
-            body: JSON.stringify({ creditsRemaining: data.data.creditsRemaining, message: 'Crédits récupérés.' }),
-        };
-
-    } catch (error) {
-        console.error('Erreur dans get-suno-credits:', error);
-        return { statusCode: 500, body: JSON.stringify({ message: 'Erreur interne du serveur.', error: error.message }) };
     }
 };
